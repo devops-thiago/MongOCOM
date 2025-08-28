@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maven Central](https://img.shields.io/badge/Maven-0.3--SNAPSHOT-orange.svg)]()
-[![Java](https://img.shields.io/badge/Java-1.7%2B-green.svg)]()
+[![Java](https://img.shields.io/badge/Java-17%2B-green.svg)]()
 [![CI](https://github.com/devops-thiago/MongOCOM/workflows/CI/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/ci.yml)
 [![PR Validation](https://github.com/devops-thiago/MongOCOM/workflows/PR%20Validation/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/pr-validation.yml)
 [![codecov](https://codecov.io/gh/devops-thiago/MongOCOM/branch/master/graph/badge.svg)](https://codecov.io/gh/devops-thiago/MongOCOM)
@@ -53,7 +53,7 @@ Add the following dependency to your `pom.xml`:
 ### Prerequisites
 
 - Java 17 or higher
-- MongoDB server (tested with MongoDB 2.x and 3.x)
+- MongoDB server (compatible with modern MongoDB versions via driver 5.x)
 - Maven 3.x (for building from source)
 
 ## Quick Start
@@ -147,7 +147,20 @@ public class Example {
 
 MongOCOM supports multiple configuration approaches:
 
-### 1. Properties File Configuration
+### 1. MongoDB URI Configuration (Recommended)
+
+Create a `database.properties` file in your classpath with a MongoDB URI:
+
+```properties
+mongocom.uri=mongodb://username:password@localhost:27017/myapp
+```
+
+Then use:
+```java
+CollectionManager cm = CollectionManagerFactory.setup();
+```
+
+### 2. Legacy Properties File Configuration
 
 Create a `database.properties` file in your classpath:
 
@@ -164,7 +177,15 @@ Then use:
 CollectionManager cm = CollectionManagerFactory.setup();
 ```
 
-### 2. Programmatic Configuration
+### 3. Direct URI-based Connection
+
+```java
+CollectionManager cm = CollectionManagerFactory.createCollectionManagerFromURI(
+    "mongodb://username:password@localhost:27017/myapp"
+);
+```
+
+### 4. Programmatic Configuration
 
 ```java
 // Basic connection
@@ -174,7 +195,7 @@ CollectionManager cm = CollectionManagerFactory.createCollectionManager("localho
 CollectionManager cm = CollectionManagerFactory.createCollectionManager("localhost", 27017, "myapp", "user", "pass");
 ```
 
-### 3. Web Application Configuration
+### 5. Web Application Configuration
 
 For web applications, place configuration files in `WEB-INF/conf/`:
 
