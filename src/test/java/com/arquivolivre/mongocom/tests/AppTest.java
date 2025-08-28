@@ -20,7 +20,7 @@ public class AppTest extends TestCase {
     return new TestSuite(AppTest.class);
   }
 
-  /** Rigourous Test :-) */
+  /** Rigorous Test :-) */
   public void testApp() {
     assertTrue(true);
   }
