@@ -35,7 +35,7 @@ fi
 echo
 
 echo "4️⃣ Building package..."
-mvn package -DskipTests
+mvn package -DskipTests=false
 if [ $? -ne 0 ]; then
     echo "❌ Package build failed!"
     exit 1
