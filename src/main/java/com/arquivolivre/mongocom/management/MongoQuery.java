@@ -15,26 +15,28 @@
  */
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.QueryBuilder;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.bson.types.ObjectId;
 
 /** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
-public final class MongoQuery extends QueryBuilder {
+public final class MongoQuery {
 
-  private BasicDBObject query;
-  private BasicDBObject constraits;
-  private BasicDBObject orderBy;
+  private Document query;
+  private Document constraints;
+  private Document orderBy;
   public static final int ORDER_ASC = 1;
   public static final int ORDER_DESC = -1;
   private int limit;
   private int skip;
 
   public MongoQuery() {
-    query = new BasicDBObject();
+    query = new Document();
   }
 
   public MongoQuery(String field, Object value) {
@@ -54,7 +56,7 @@ public final class MongoQuery extends QueryBuilder {
       MongoQuery q = (MongoQuery) value;
       query.append(field, q.getQuery());
     } else if (value instanceof List) {
-      BasicDBList lists = new BasicDBList();
+      ArrayList<Object> lists = new ArrayList<>();
       for (Object item : (List) value) {
         if (item instanceof MongoQuery) {
           MongoQuery q = (MongoQuery) item;
@@ -79,12 +81,12 @@ public final class MongoQuery extends QueryBuilder {
    * @param fields field names to be returned in the result set
    */
   public void returnOnly(boolean returnId, String... fields) {
-    constraits = new BasicDBObject();
+    constraints = new Document();
     for (String field : fields) {
-      constraits.append(field, 1);
+      constraints.append(field, 1);
     }
     if (!returnId) {
-      constraits.append("_id", 0);
+      constraints.append("_id", 0);
     }
   }
 
@@ -94,34 +96,35 @@ public final class MongoQuery extends QueryBuilder {
    * @param fields fields to be removed
    */
   public void removeFieldsFromResult(String... fields) {
-    constraits = new BasicDBObject();
+    constraints = new Document();
     for (String field : fields) {
-      constraits.append(field, 0);
+      constraints.append(field, 0);
     }
   }
 
   public void orderBy(String field, int order) {
-    orderBy = new BasicDBObject();
+    orderBy = new Document();
     orderBy.append(field, order);
   }
 
   /** mark to remove _id field from the result document. */
   public void removeIdFromResult() {
-    constraits.append("_id", 0);
+    if (constraints == null) {
+      constraints = new Document();
+    }
+    constraints.append("_id", 0);
   }
 
-  public DBObject getQuery() {
-    if (orderBy != null) {
-      BasicDBObject newQuery = new BasicDBObject();
-      newQuery.append("$query", query);
-      newQuery.append("$orderby", orderBy);
-      return newQuery;
-    }
+  public Document getQuery() {
     return query;
   }
 
-  public DBObject getConstraits() {
-    return constraits;
+  public Document getConstraints() {
+    return constraints;
+  }
+
+  public Document getOrderBy() {
+    return orderBy;
   }
 
   public int getLimit() {
@@ -141,10 +144,10 @@ public final class MongoQuery extends QueryBuilder {
   }
 
   public String getQueryJson() {
-    return query.toString();
+    return query.toJson();
   }
 
-  public String getConstraitsJson() {
-    return constraits.toString();
+  public String getConstraintsJson() {
+    return constraints != null ? constraints.toJson() : "{}";
   }
 }

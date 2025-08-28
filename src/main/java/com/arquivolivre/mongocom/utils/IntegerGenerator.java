@@ -15,26 +15,29 @@
  */
 package com.arquivolivre.mongocom.utils;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 
 /** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public class IntegerGenerator implements Generator {
 
   @Override
-  public Integer generateValue(Class parent, DB db) {
-    DBCollection collection = db.getCollection("values_" + parent.getSimpleName());
-    DBObject o = collection.findOne();
+  public Integer generateValue(Class parent, MongoDatabase db) {
+    MongoCollection<Document> collection = db.getCollection("values_" + parent.getSimpleName());
+    Document o = collection.find().first();
     int value = 0;
     if (o != null) {
-      value = (int) o.get("generatedValue");
+      value = o.getInteger("generatedValue", 0);
     } else {
-      o = new BasicDBObject("generatedValue", value);
+      o = new Document("generatedValue", value);
     }
     o.put("generatedValue", ++value);
-    collection.save(o);
+    if (o.getObjectId("_id") != null) {
+      collection.replaceOne(new Document("_id", o.getObjectId("_id")), o);
+    } else {
+      collection.insertOne(o);
+    }
     return value;
   }
 }

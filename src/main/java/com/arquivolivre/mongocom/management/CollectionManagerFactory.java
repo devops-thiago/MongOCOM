@@ -15,10 +15,11 @@
  */
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
-import com.mongodb.MongoURI;
+import com.mongodb.ConnectionString;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -29,12 +30,12 @@ import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public final class CollectionManagerFactory {
 
-  private static Mongo client;
+  private static MongoClient client;
   private static final Logger LOG = Logger.getLogger(CollectionManagerFactory.class.getName());
   private static final String[] FILES = {"application", "database"};
   private static final String[] EXTENTIONS = {".conf", ".config", ".properties"};
@@ -66,24 +67,70 @@ public final class CollectionManagerFactory {
     return createBaseCollectionManager(host, port, dbName, user, password);
   }
 
+  /**
+   * Create a <code>CollectionManager</code> using a MongoDB connection URI.
+   *
+   * @param uri MongoDB connection URI (e.g., "mongodb://user:password@host:port/database")
+   * @return an instance of a <code>CollectionManager</code>.
+   */
+  public static CollectionManager createCollectionManagerFromURI(String uri) {
+    try {
+      ConnectionString connectionString = new ConnectionString(uri);
+      MongoClientSettings settings = MongoClientSettings.builder()
+          .applyConnectionString(connectionString)
+          .build();
+      client = MongoClients.create(settings);
+      String dbName = connectionString.getDatabase();
+      LOG.log(Level.INFO, "Connected to MongoDB using URI: {0}", uri);
+      return new CollectionManager(client, dbName);
+    } catch (MongoException ex) {
+      LOG.log(
+          Level.SEVERE,
+          "Unable to connect to MongoDB using URI: " + uri + ", error: ",
+          ex);
+    }
+    return null;
+  }
+
   private static CollectionManager createBaseCollectionManager(
       String host, int port, String dbName, String user, String password) {
     try {
+      StringBuilder uriBuilder = new StringBuilder();
+      uriBuilder.append("mongodb://");
+      
+      // Add authentication if provided
+      if (!user.equals("")) {
+        uriBuilder.append(user).append(":").append(password).append("@");
+      }
+      
+      // Add host
       if ("".equals(host)) {
-        client = new MongoClient();
+        uriBuilder.append("localhost");
       } else {
-        if (port == 0) {
-          client = new MongoClient(host);
-        } else {
-          client = new MongoClient(host, port);
-        }
+        uriBuilder.append(host);
       }
-      LOG.log(Level.INFO, "Connected to {0}", client.getAddress());
-      if ("".equals(user)) {
-        return new CollectionManager(client, dbName);
+      
+      // Add port if provided
+      if (port != 0) {
+        uriBuilder.append(":").append(port);
       }
-      return new CollectionManager(client, dbName, user, password);
-    } catch (MongoException | UnknownHostException ex) {
+      
+      // Add database name
+      uriBuilder.append("/");
+      if (!dbName.equals("")) {
+        uriBuilder.append(dbName);
+      }
+      
+      String uri = uriBuilder.toString();
+      LOG.log(Level.INFO, "Connecting to MongoDB with URI: {0}", uri);
+      ConnectionString connectionString = new ConnectionString(uri);
+      MongoClientSettings settings = MongoClientSettings.builder()
+          .applyConnectionString(connectionString)
+          .build();
+      client = MongoClients.create(settings);
+      
+      return new CollectionManager(client, dbName);
+    } catch (MongoException ex) {
       LOG.log(
           Level.SEVERE,
           "Unable to connect to a mongoDB instance, maybe it is not running or you do not have the right permission: ",
@@ -120,8 +167,23 @@ public final class CollectionManagerFactory {
       InputStream in = new FileInputStream(props);
       Properties properties = new Properties();
       properties.load(in);
+      
+      // Check if URI is provided directly
+      if (properties.containsKey("mongocom.uri")) {
+        String uri = properties.getProperty("mongocom.uri");
+        LOG.log(Level.INFO, "Using provided MongoDB URI");
+        ConnectionString connectionString = new ConnectionString(uri);
+        MongoClientSettings settings = MongoClientSettings.builder()
+            .applyConnectionString(connectionString)
+            .build();
+        client = MongoClients.create(settings);
+        String dbName = connectionString.getDatabase();
+        return new CollectionManager(client, dbName);
+      }
+      
+      // Fall back to individual properties approach for backward compatibility
       StringBuilder builder = new StringBuilder();
-      builder.append(MongoURI.MONGODB_PREFIX);
+      builder.append("mongodb://");
       String user, password, host, port, dbName;
       user = properties.containsKey("mongocom.user") ? properties.getProperty("mongocom.user") : "";
       password =
@@ -150,9 +212,12 @@ public final class CollectionManagerFactory {
       if (!dbName.equals("")) {
         builder.append(dbName);
       }
-      LOG.log(Level.INFO, "Mongo URI: {0}", builder.toString());
-      MongoURI uri = new MongoURI(builder.toString());
-      client = MongoClient.Holder.singleton().connect(uri);
+      LOG.log(Level.INFO, "Constructed MongoDB URI from individual properties: {0}", builder.toString());
+      ConnectionString connectionString = new ConnectionString(builder.toString());
+      MongoClientSettings settings = MongoClientSettings.builder()
+          .applyConnectionString(connectionString)
+          .build();
+      client = MongoClients.create(settings);
       return new CollectionManager(client, dbName);
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, null, ex);
