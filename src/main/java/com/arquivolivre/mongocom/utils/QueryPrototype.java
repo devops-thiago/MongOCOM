@@ -34,7 +34,7 @@ public class QueryPrototype {
 
   public static void greaterThanOrEqualTo(Object value) {}
 
-  public static void lessThanOrEqualTo(Object valu) {}
+  public static void lessThanOrEqualTo(Object value) {}
 
   public static void and(String field) {}
 
