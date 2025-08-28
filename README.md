@@ -344,6 +344,43 @@ mvn clean compile
 mvn package
 ```
 
+## Quality Assurance
+
+This project includes comprehensive quality checks through automated CI/CD pipelines:
+
+### Continuous Integration
+
+- **Automated Testing**: All tests run automatically on every PR and push
+- **Code Coverage**: JaCoCo generates detailed coverage reports (target: 80%+)
+- **Code Formatting**: Spotless ensures consistent Google Java Format style
+- **Static Analysis**: SpotBugs, PMD, and Checkstyle identify potential issues
+- **SonarCloud**: Quality gate analysis for maintainability and security
+- **Build Verification**: Ensures successful JAR creation
+
+### Local Development
+
+Run quality checks locally before committing:
+
+```bash
+# Run all quality checks
+./check-quality.sh
+
+# Or run individual checks
+mvn test                    # Run tests with coverage
+mvn spotless:check         # Check code formatting
+mvn spotless:apply         # Fix formatting issues
+mvn checkstyle:check       # Check code style
+mvn pmd:check              # Run PMD analysis
+mvn spotbugs:check         # Run SpotBugs analysis
+mvn clean verify           # Run complete verification
+```
+
+### Coverage Reports
+
+After running tests, coverage reports are available at:
+- HTML Report: `target/site/jacoco/index.html`
+- XML Report: `target/site/jacoco/jacoco.xml`
+
 ## Contributing
 
 1. Fork the repository
