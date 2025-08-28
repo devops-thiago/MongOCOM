@@ -28,7 +28,7 @@ public class QueryPrototype {
 
   public static void notEqualsTo(Object value) {}
 
-  public static void graterThan(Object value) {}
+  public static void greaterThan(Object value) {}
 
   public static void lessThan(Object value) {}
 
