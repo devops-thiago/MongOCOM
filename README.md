@@ -52,7 +52,7 @@ Add the following dependency to your `pom.xml`:
 
 ### Prerequisites
 
-- Java 1.7 or higher
+- Java 21 or higher
 - MongoDB server (tested with MongoDB 2.x and 3.x)
 - Maven 3.x (for building from source)
 
@@ -391,7 +391,7 @@ After running tests, coverage reports are available at:
 
 ### Development Setup
 
-- Java 1.7+
+- Java 21+
 - Maven 3.x
 - MongoDB server for testing
 

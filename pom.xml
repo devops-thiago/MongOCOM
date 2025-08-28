@@ -27,10 +27,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.11.0</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>21</source>
+                    <target>21</target>
+                    <release>21</release>
                 </configuration>
             </plugin>
             
@@ -98,7 +99,7 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>3.14.0</version>
                 <configuration>
-                    <targetJdk>1.7</targetJdk>
+                    <targetJdk>21</targetJdk>
                     <rulesets>
                         <ruleset>/rulesets/java/basic.xml</ruleset>
                         <ruleset>/rulesets/java/imports.xml</ruleset>
@@ -150,8 +151,9 @@
     </build>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
         
         <!-- SonarQube properties -->
         <sonar.organization>devops-thiago</sonar.organization>
