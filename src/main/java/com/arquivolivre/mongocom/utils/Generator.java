@@ -17,11 +17,8 @@ package com.arquivolivre.mongocom.utils;
 
 import com.mongodb.DB;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>
- */
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public interface Generator {
 
-    <A extends Object> A generateValue(Class parent, DB db);
+  <A extends Object> A generateValue(Class parent, DB db);
 }

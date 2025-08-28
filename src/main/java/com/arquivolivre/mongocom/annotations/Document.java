@@ -21,14 +21,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
- */
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Document {
 
-    String collection() default "";
-
+  String collection() default "";
 }

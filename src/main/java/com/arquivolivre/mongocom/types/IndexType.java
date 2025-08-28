@@ -15,15 +15,11 @@
  */
 package com.arquivolivre.mongocom.types;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
- */
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
 public class IndexType {
 
-    public static final int INDEX_ASCENDING = 1;
-    public static final int INDEX_DESCENDING = -1;
-    public static final String INDEX_TEXT = "text";
-    public static final String INDEX_HASHED = "hashed";
-
+  public static final int INDEX_ASCENDING = 1;
+  public static final int INDEX_DESCENDING = -1;
+  public static final String INDEX_TEXT = "text";
+  public static final String INDEX_HASHED = "hashed";
 }

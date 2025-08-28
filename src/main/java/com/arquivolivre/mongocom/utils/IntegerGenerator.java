@@ -20,25 +20,21 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>
- */
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public class IntegerGenerator implements Generator {
 
-    @Override
-    public Integer generateValue(Class parent, DB db) {
-        DBCollection collection = db.getCollection("values_" + parent.getSimpleName());
-        DBObject o = collection.findOne();
-        int value = 0;
-        if (o != null) {
-            value = (int) o.get("generatedValue");
-        } else {
-            o = new BasicDBObject("generatedValue", value);
-        }
-        o.put("generatedValue", ++value);
-        collection.save(o);
-        return value;
+  @Override
+  public Integer generateValue(Class parent, DB db) {
+    DBCollection collection = db.getCollection("values_" + parent.getSimpleName());
+    DBObject o = collection.findOne();
+    int value = 0;
+    if (o != null) {
+      value = (int) o.get("generatedValue");
+    } else {
+      o = new BasicDBObject("generatedValue", value);
     }
-
+    o.put("generatedValue", ++value);
+    collection.save(o);
+    return value;
+  }
 }

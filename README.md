@@ -3,6 +3,13 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maven Central](https://img.shields.io/badge/Maven-0.3--SNAPSHOT-orange.svg)]()
 [![Java](https://img.shields.io/badge/Java-1.7%2B-green.svg)]()
+[![CI](https://github.com/devops-thiago/MongOCOM/workflows/CI/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/ci.yml)
+[![PR Validation](https://github.com/devops-thiago/MongOCOM/workflows/PR%20Validation/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/pr-validation.yml)
+[![codecov](https://codecov.io/gh/devops-thiago/MongOCOM/branch/master/graph/badge.svg)](https://codecov.io/gh/devops-thiago/MongOCOM)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=coverage)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
 
 MongOCOM (Mongo Object-COllection Mapper) is a lightweight Java Object-Document Mapping (ODM) library for MongoDB. It provides an annotation-based approach to map Java objects to MongoDB documents, similar to how JPA/Hibernate works for relational databases.
 
@@ -336,6 +343,43 @@ cd MongOCOM
 mvn clean compile
 mvn package
 ```
+
+## Quality Assurance
+
+This project includes comprehensive quality checks through automated CI/CD pipelines:
+
+### Continuous Integration
+
+- **Automated Testing**: All tests run automatically on every PR and push
+- **Code Coverage**: JaCoCo generates detailed coverage reports (target: 80%+)
+- **Code Formatting**: Spotless ensures consistent Google Java Format style
+- **Static Analysis**: SpotBugs, PMD, and Checkstyle identify potential issues
+- **SonarCloud**: Quality gate analysis for maintainability and security
+- **Build Verification**: Ensures successful JAR creation
+
+### Local Development
+
+Run quality checks locally before committing:
+
+```bash
+# Run all quality checks
+./check-quality.sh
+
+# Or run individual checks
+mvn test                    # Run tests with coverage
+mvn spotless:check         # Check code formatting
+mvn spotless:apply         # Fix formatting issues
+mvn checkstyle:check       # Check code style
+mvn pmd:check              # Run PMD analysis
+mvn spotbugs:check         # Run SpotBugs analysis
+mvn clean verify           # Run complete verification
+```
+
+### Coverage Reports
+
+After running tests, coverage reports are available at:
+- HTML Report: `target/site/jacoco/index.html`
+- XML Report: `target/site/jacoco/jacoco.xml`
 
 ## Contributing
 

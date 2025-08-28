@@ -1,0 +1,72 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    
+    - name: Run tests
+      run: mvn clean test
+    
+    - name: Generate test coverage report
+      run: mvn jacoco:report
+    
+    - name: Run checkstyle
+      run: mvn checkstyle:check
+      continue-on-error: true
+    
+    - name: Run PMD
+      run: mvn pmd:check
+      continue-on-error: true
+    
+    - name: Run SpotBugs
+      run: mvn spotbugs:check
+      continue-on-error: true
+    
+    - name: Check code formatting with Spotless
+      run: mvn spotless:check
+      continue-on-error: true
+    
+    - name: Build package
+      run: mvn clean package -DskipTests
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./target/site/jacoco/jacoco.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: Archive test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          target/surefire-reports/
+          target/site/jacoco/
+          target/site/checkstyle.html
+          target/site/pmd.html
+          target/site/spotbugs.html
