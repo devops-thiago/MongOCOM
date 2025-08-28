@@ -22,136 +22,129 @@ import com.mongodb.QueryBuilder;
 import java.util.List;
 import org.bson.types.ObjectId;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
- */
-public final class MongoQuery extends QueryBuilder{
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+public final class MongoQuery extends QueryBuilder {
 
-    private BasicDBObject query;
-    private BasicDBObject constraits;
-    private BasicDBObject orderBy;
-    public static final int ORDER_ASC = 1;
-    public static final int ORDER_DESC = -1;
-    private int limit;
-    private int skip;
+  private BasicDBObject query;
+  private BasicDBObject constraits;
+  private BasicDBObject orderBy;
+  public static final int ORDER_ASC = 1;
+  public static final int ORDER_DESC = -1;
+  private int limit;
+  private int skip;
 
-    public MongoQuery() {
-        query = new BasicDBObject();
-    }
+  public MongoQuery() {
+    query = new BasicDBObject();
+  }
 
-    public MongoQuery(String field, Object value) {
-        this();
-        add(field, value);
-    }
+  public MongoQuery(String field, Object value) {
+    this();
+    add(field, value);
+  }
 
-    /**
-     * Set a criteria to the query
-     *
-     * @param field field name
-     * @param value
-     * @return the same object instance
-     */
-    public MongoQuery add(String field, Object value) {
-        if (value instanceof MongoQuery) {
-            MongoQuery q = (MongoQuery) value;
-            query.append(field, q.getQuery());
-        } else if (value instanceof List) {
-            BasicDBList lists = new BasicDBList();
-            for (Object item : (List) value) {
-                if (item instanceof MongoQuery) {
-                    MongoQuery q = (MongoQuery) item;
-                    lists.add(q.getQuery());
-                    continue;
-                }
-                lists.add(item);
-            }
-            query.append(field, lists);
-        } else if (field.equals("_id")) {
-            query.append(field, new ObjectId((String) value));
-        } else {
-            query.append(field, value);
+  /**
+   * Set a criteria to the query
+   *
+   * @param field field name
+   * @param value
+   * @return the same object instance
+   */
+  public MongoQuery add(String field, Object value) {
+    if (value instanceof MongoQuery) {
+      MongoQuery q = (MongoQuery) value;
+      query.append(field, q.getQuery());
+    } else if (value instanceof List) {
+      BasicDBList lists = new BasicDBList();
+      for (Object item : (List) value) {
+        if (item instanceof MongoQuery) {
+          MongoQuery q = (MongoQuery) item;
+          lists.add(q.getQuery());
+          continue;
         }
-        return this;
+        lists.add(item);
+      }
+      query.append(field, lists);
+    } else if (field.equals("_id")) {
+      query.append(field, new ObjectId((String) value));
+    } else {
+      query.append(field, value);
     }
+    return this;
+  }
 
-    /**
-     * Limit the fields returned in a document result set
-     *
-     * @param returnId return the _id field in the result set if true
-     * @param fields field names to be returned in the result set
-     */
-    public void returnOnly(boolean returnId, String... fields) {
-        constraits = new BasicDBObject();
-        for (String field : fields) {
-            constraits.append(field, 1);
-        }
-        if (!returnId) {
-            constraits.append("_id", 0);
-        }
+  /**
+   * Limit the fields returned in a document result set
+   *
+   * @param returnId return the _id field in the result set if true
+   * @param fields field names to be returned in the result set
+   */
+  public void returnOnly(boolean returnId, String... fields) {
+    constraits = new BasicDBObject();
+    for (String field : fields) {
+      constraits.append(field, 1);
     }
-
-    /**
-     * Remove the specified fields from the result document set.
-     *
-     * @param fields fields to be removed
-     */
-    public void removeFieldsFromResult(String... fields) {
-        constraits = new BasicDBObject();
-        for (String field : fields) {
-            constraits.append(field, 0);
-        }
+    if (!returnId) {
+      constraits.append("_id", 0);
     }
+  }
 
-    public void orderBy(String field, int order) {
-        orderBy = new BasicDBObject();
-        orderBy.append(field, order);
+  /**
+   * Remove the specified fields from the result document set.
+   *
+   * @param fields fields to be removed
+   */
+  public void removeFieldsFromResult(String... fields) {
+    constraits = new BasicDBObject();
+    for (String field : fields) {
+      constraits.append(field, 0);
     }
+  }
 
-    /**
-     * mark to remove _id field from the result document.
-     *
-     */
-    public void removeIdFromResult() {
-        constraits.append("_id", 0);
+  public void orderBy(String field, int order) {
+    orderBy = new BasicDBObject();
+    orderBy.append(field, order);
+  }
+
+  /** mark to remove _id field from the result document. */
+  public void removeIdFromResult() {
+    constraits.append("_id", 0);
+  }
+
+  public DBObject getQuery() {
+    if (orderBy != null) {
+      BasicDBObject newQuery = new BasicDBObject();
+      newQuery.append("$query", query);
+      newQuery.append("$orderby", orderBy);
+      return newQuery;
     }
+    return query;
+  }
 
-    public DBObject getQuery() {
-        if (orderBy != null) {
-            BasicDBObject newQuery = new BasicDBObject();
-            newQuery.append("$query", query);
-            newQuery.append("$orderby", orderBy);
-            return newQuery;
-        }
-        return query;
-    }
+  public DBObject getConstraits() {
+    return constraits;
+  }
 
-    public DBObject getConstraits() {
-        return constraits;
-    }
+  public int getLimit() {
+    return limit;
+  }
 
-    public int getLimit() {
-        return limit;
-    }
+  public void limit(int limit) {
+    this.limit = limit;
+  }
 
-    public void limit(int limit) {
-        this.limit = limit;
-    }
+  public int getSkip() {
+    return skip;
+  }
 
-    public int getSkip() {
-        return skip;
-    }
+  public void skip(int skip) {
+    this.skip = skip;
+  }
 
-    public void skip(int skip) {
-        this.skip = skip;
-    }
+  public String getQueryJson() {
+    return query.toString();
+  }
 
-    public String getQueryJson() {
-        return query.toString();
-    }
-
-    public String getConstraitsJson() {
-        return constraits.toString();
-    }
-
+  public String getConstraitsJson() {
+    return constraits.toString();
+  }
 }

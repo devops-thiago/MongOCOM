@@ -15,70 +15,36 @@
  */
 package com.arquivolivre.mongocom.utils;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>
- */
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public class QueryPrototype {
 
-    public static void select(String... fields) {
+  public static void select(String... fields) {}
 
-    }
+  public static void from(Class<?> collection) {}
 
-    public static void from(Class<?> collection) {
+  public static void where(String field) {}
 
-    }
+  public static void equalsTo(Object value) {}
 
-    public static void where(String field) {
+  public static void notEqualsTo(Object value) {}
 
-    }
+  public static void graterThan(Object value) {}
 
-    public static void equalsTo(Object value) {
+  public static void lessThan(Object value) {}
 
-    }
+  public static void greaterThanOrEqualTo(Object value) {}
 
-    public static void notEqualsTo(Object value) {
+  public static void lessThanOrEqualTo(Object valu) {}
 
-    }
+  public static void and(String field) {}
 
-    public static void graterThan(Object value) {
+  public static void or(String field) {}
 
-    }
+  public static void exists() {}
 
-    public static void lessThan(Object value) {
+  public static void notExists() {}
 
-    }
+  public static void in(Object... values) {}
 
-    public static void greaterThanOrEqualTo(Object value) {
-
-    }
-
-    public static void lessThanOrEqualTo(Object valu) {
-
-    }
-
-    public static void and(String field) {
-
-    }
-
-    public static void or(String field) {
-
-    }
-
-    public static void exists() {
-
-    }
-
-    public static void notExists() {
-
-    }
-
-    public static void in(Object... values) {
-
-    }
-
-    public static void notIn(Object... values) {
-
-    }
-
+  public static void notIn(Object... values) {}
 }

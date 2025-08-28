@@ -19,15 +19,11 @@ package com.arquivolivre.mongocom.utils;
 import com.mongodb.DB;
 import java.util.Date;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>
- */
-public class DateGenerator implements Generator{
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+public class DateGenerator implements Generator {
 
-    @Override
-    public Date generateValue(Class parent, DB db) {
-        return new Date();
-    }
-    
+  @Override
+  public Date generateValue(Class parent, DB db) {
+    return new Date();
+  }
 }

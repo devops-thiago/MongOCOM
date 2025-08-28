@@ -21,26 +21,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- *
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
- */
+/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Index {
 
-    String value() default "";
+  String value() default "";
 
-    boolean unique() default false;
+  boolean unique() default false;
 
-    boolean sparse() default false;
+  boolean sparse() default false;
 
-    boolean dropDups() default false;
+  boolean dropDups() default false;
 
-    boolean background() default true;
+  boolean background() default true;
 
-    int order() default IndexType.INDEX_ASCENDING;
+  int order() default IndexType.INDEX_ASCENDING;
 
-    String type() default "";
-
+  String type() default "";
 }

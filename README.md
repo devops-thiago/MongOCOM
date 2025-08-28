@@ -3,6 +3,13 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maven Central](https://img.shields.io/badge/Maven-0.3--SNAPSHOT-orange.svg)]()
 [![Java](https://img.shields.io/badge/Java-1.7%2B-green.svg)]()
+[![CI](https://github.com/devops-thiago/MongOCOM/workflows/CI/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/ci.yml)
+[![PR Validation](https://github.com/devops-thiago/MongOCOM/workflows/PR%20Validation/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/pr-validation.yml)
+[![codecov](https://codecov.io/gh/devops-thiago/MongOCOM/branch/master/graph/badge.svg)](https://codecov.io/gh/devops-thiago/MongOCOM)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=coverage)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
 
 MongOCOM (Mongo Object-COllection Mapper) is a lightweight Java Object-Document Mapping (ODM) library for MongoDB. It provides an annotation-based approach to map Java objects to MongoDB documents, similar to how JPA/Hibernate works for relational databases.
 
