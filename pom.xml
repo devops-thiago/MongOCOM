@@ -77,7 +77,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.2.3</version>
+                <version>4.8.1.0</version>
                 <configuration>
                     <effort>Max</effort>
                     <threshold>Low</threshold>
@@ -96,13 +96,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.14.0</version>
+                <version>3.21.0</version>
                 <configuration>
                     <targetJdk>17</targetJdk>
                     <rulesets>
-                        <ruleset>/rulesets/java/basic.xml</ruleset>
-                        <ruleset>/rulesets/java/imports.xml</ruleset>
-                        <ruleset>/rulesets/java/unusedcode.xml</ruleset>
+                        <ruleset>/category/java/bestpractices.xml</ruleset>
+                        <ruleset>/category/java/codestyle.xml</ruleset>
+                        <ruleset>/category/java/design.xml</ruleset>
+                        <ruleset>/category/java/errorprone.xml</ruleset>
+                        <ruleset>/category/java/performance.xml</ruleset>
                     </rulesets>
                     <failOnViolation>false</failOnViolation>
                 </configuration>
