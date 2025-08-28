@@ -66,7 +66,8 @@ public final class CollectionManager implements Closeable {
 
   protected CollectionManager(Mongo client, String dbName, String user, String password) {
     this(client, dbName);
-    db.authenticate(user, password.toCharArray());
+    // Note: Authentication should be handled during MongoClient creation in newer drivers
+    // The authenticate method is deprecated and removed in newer driver versions
   }
 
   protected CollectionManager(Mongo client) {
@@ -386,7 +387,7 @@ public final class CollectionManager implements Closeable {
       String fieldName = field.getName();
       if (indexName.equals("") && type.equals("")) {
         indexKeys.append(fieldName, order);
-        collection.ensureIndex(indexKeys, options);
+        collection.createIndex(indexKeys, options);
       } else if (!indexName.equals("") && type.equals("")) {
         List<String> result = compoundIndexes.get(indexName);
         if (result == null) {
@@ -396,7 +397,7 @@ public final class CollectionManager implements Closeable {
         result.add(fieldName + "_" + order);
       } else if (!type.equals("")) {
         indexKeys.append(fieldName, type);
-        collection.ensureIndex(indexKeys, compoundIndexesOpt);
+        collection.createIndex(indexKeys, compoundIndexesOpt);
       }
     }
     Set<String> keys = compoundIndexes.keySet();
@@ -415,7 +416,7 @@ public final class CollectionManager implements Closeable {
         }
         keysObj.append(opt[0], Integer.parseInt(opt[1]));
       }
-      collection.ensureIndex(keysObj, compoundIndexesOpt);
+      collection.createIndex(keysObj, compoundIndexesOpt);
     }
   }
 

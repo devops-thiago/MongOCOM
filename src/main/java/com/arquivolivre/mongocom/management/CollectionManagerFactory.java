@@ -29,7 +29,7 @@ import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 
 /** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public final class CollectionManagerFactory {
@@ -83,7 +83,7 @@ public final class CollectionManagerFactory {
         return new CollectionManager(client, dbName);
       }
       return new CollectionManager(client, dbName, user, password);
-    } catch (MongoException | UnknownHostException ex) {
+    } catch (MongoException ex) {
       LOG.log(
           Level.SEVERE,
           "Unable to connect to a mongoDB instance, maybe it is not running or you do not have the right permission: ",
