@@ -15,10 +15,11 @@
  */
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
+import com.mongodb.ConnectionString;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -34,7 +35,7 @@ import jakarta.servlet.ServletContext;
 /** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public final class CollectionManagerFactory {
 
-  private static Mongo client;
+  private static MongoClient client;
   private static final Logger LOG = Logger.getLogger(CollectionManagerFactory.class.getName());
   private static final String[] FILES = {"application", "database"};
   private static final String[] EXTENTIONS = {".conf", ".config", ".properties"};
@@ -74,9 +75,12 @@ public final class CollectionManagerFactory {
    */
   public static CollectionManager createCollectionManagerFromURI(String uri) {
     try {
-      MongoClientURI mongoClientURI = new MongoClientURI(uri);
-      client = new MongoClient(mongoClientURI);
-      String dbName = mongoClientURI.getDatabase();
+      ConnectionString connectionString = new ConnectionString(uri);
+      MongoClientSettings settings = MongoClientSettings.builder()
+          .applyConnectionString(connectionString)
+          .build();
+      client = MongoClients.create(settings);
+      String dbName = connectionString.getDatabase();
       LOG.log(Level.INFO, "Connected to MongoDB using URI: {0}", uri);
       return new CollectionManager(client, dbName);
     } catch (MongoException ex) {
@@ -119,8 +123,11 @@ public final class CollectionManagerFactory {
       
       String uri = uriBuilder.toString();
       LOG.log(Level.INFO, "Connecting to MongoDB with URI: {0}", uri);
-      MongoClientURI mongoClientURI = new MongoClientURI(uri);
-      client = new MongoClient(mongoClientURI);
+      ConnectionString connectionString = new ConnectionString(uri);
+      MongoClientSettings settings = MongoClientSettings.builder()
+          .applyConnectionString(connectionString)
+          .build();
+      client = MongoClients.create(settings);
       
       return new CollectionManager(client, dbName);
     } catch (MongoException ex) {
@@ -165,9 +172,12 @@ public final class CollectionManagerFactory {
       if (properties.containsKey("mongocom.uri")) {
         String uri = properties.getProperty("mongocom.uri");
         LOG.log(Level.INFO, "Using provided MongoDB URI");
-        MongoClientURI mongoClientURI = new MongoClientURI(uri);
-        client = new MongoClient(mongoClientURI);
-        String dbName = mongoClientURI.getDatabase();
+        ConnectionString connectionString = new ConnectionString(uri);
+        MongoClientSettings settings = MongoClientSettings.builder()
+            .applyConnectionString(connectionString)
+            .build();
+        client = MongoClients.create(settings);
+        String dbName = connectionString.getDatabase();
         return new CollectionManager(client, dbName);
       }
       
@@ -203,8 +213,11 @@ public final class CollectionManagerFactory {
         builder.append(dbName);
       }
       LOG.log(Level.INFO, "Constructed MongoDB URI from individual properties: {0}", builder.toString());
-      MongoClientURI mongoClientURI = new MongoClientURI(builder.toString());
-      client = new MongoClient(mongoClientURI);
+      ConnectionString connectionString = new ConnectionString(builder.toString());
+      MongoClientSettings settings = MongoClientSettings.builder()
+          .applyConnectionString(connectionString)
+          .build();
+      client = MongoClients.create(settings);
       return new CollectionManager(client, dbName);
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, null, ex);

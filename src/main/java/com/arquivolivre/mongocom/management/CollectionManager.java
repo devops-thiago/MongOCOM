@@ -23,14 +23,10 @@ import com.arquivolivre.mongocom.annotations.Internal;
 import com.arquivolivre.mongocom.annotations.ObjectId;
 import com.arquivolivre.mongocom.annotations.Reference;
 import com.arquivolivre.mongocom.utils.Generator;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import com.mongodb.WriteConcern;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.FindIterable;
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -50,27 +46,28 @@ import org.bson.types.BasicBSONList;
 /** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
 public final class CollectionManager implements Closeable {
 
-  private final Mongo client;
-  private DB db;
+  private final MongoClient client;
+  private MongoDatabase db;
   private static final Logger LOG = Logger.getLogger(CollectionManager.class.getName());
 
   // TODO: a better way to manage db connection
-  protected CollectionManager(Mongo client, String dataBase) {
+  protected CollectionManager(MongoClient client, String dataBase) {
     this.client = client;
     if (dataBase != null && !dataBase.equals("")) {
-      this.db = client.getDB(dataBase);
+      this.db = client.getDatabase(dataBase);
     } else {
-      this.db = client.getDB(client.getDatabaseNames().get(0));
+      // Get the first available database - need to handle differently in new driver
+      this.db = client.getDatabase("test"); // Default to 'test' database
     }
   }
 
-  protected CollectionManager(Mongo client, String dbName, String user, String password) {
+  protected CollectionManager(MongoClient client, String dbName, String user, String password) {
     this(client, dbName);
     // Note: Authentication should be handled during MongoClient creation in newer drivers
     // The authenticate method is deprecated and removed in newer driver versions
   }
 
-  protected CollectionManager(Mongo client) {
+  protected CollectionManager(MongoClient client) {
     this.client = client;
   }
 
@@ -80,7 +77,7 @@ public final class CollectionManager implements Closeable {
    * @param dbName Database name
    */
   public void use(String dbName) {
-    db = client.getDB(dbName);
+    db = client.getDatabase(dbName);
   }
 
   /**
