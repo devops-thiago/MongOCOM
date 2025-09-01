@@ -1,10 +1,10 @@
 # MongOCOM - Mongo Object-COllection Mapper
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Maven Central](https://img.shields.io/badge/Maven-0.3--SNAPSHOT-orange.svg)]()
-[![Java](https://img.shields.io/badge/Java-17%2B-green.svg)]()
-[![CI](https://github.com/devops-thiago/MongOCOM/workflows/CI/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/ci.yml)
-[![PR Validation](https://github.com/devops-thiago/MongOCOM/workflows/PR%20Validation/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/pr-validation.yml)
+[![Maven Central](https://img.shields.io/badge/Maven-0.4--SNAPSHOT-orange.svg)](https://github.com/devops-thiago/MongOCOM/releases)
+[![Java](https://img.shields.io/badge/Java-17%2B-green.svg)](https://openjdk.org/projects/jdk/17/)
+[![CI](https://github.com/devops-thiago/MongOCOM/actions/workflows/ci.yml/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/ci.yml)
+[![PR Validation](https://github.com/devops-thiago/MongOCOM/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/devops-thiago/MongOCOM/actions/workflows/pr-validation.yml)
 [![codecov](https://codecov.io/gh/devops-thiago/MongOCOM/branch/master/graph/badge.svg)](https://codecov.io/gh/devops-thiago/MongOCOM)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=devops-thiago_MongOCOM&metric=coverage)](https://sonarcloud.io/summary/new_code?id=devops-thiago_MongOCOM)
@@ -46,7 +46,7 @@ Add the following dependency to your `pom.xml`:
 <dependency>
     <groupId>com.arquivolivre</groupId>
     <artifactId>mongocom</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.4-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -416,9 +416,21 @@ After running tests, coverage reports are available at:
 - Maven 3.x
 - MongoDB server for testing
 
+### CI/CD Setup (For Repository Maintainers)
+
+To enable full CI/CD functionality including SonarCloud analysis and CodeCov reporting, you need to configure GitHub repository secrets. See [GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md) for detailed instructions on:
+
+- Setting up SonarCloud integration (`SONAR_TOKEN`)
+- Configuring CodeCov reporting (`CODECOV_TOKEN`)
+- Verifying workflow functionality
+
 ## Version History
 
-- **0.3-SNAPSHOT** - Current development version
+- **0.4-SNAPSHOT** - Current development version
+  - Enhanced code quality (SonarCloud integration)
+  - Improved CI/CD pipeline with proper token management
+  - Fixed potential security vulnerabilities
+  - Better resource management and null safety
   - Annotation-based mapping
   - Basic CRUD operations
   - Document relationships support

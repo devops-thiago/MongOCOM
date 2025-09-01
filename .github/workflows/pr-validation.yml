@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [ master, main ]
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -51,9 +56,25 @@ jobs:
     - name: Build package
       run: mvn clean package -DskipTests
     
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+
+    - name: Run SonarCloud analysis for PR
+      if: env.SONAR_TOKEN != ''
+      run: mvn sonar:sonar
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     - name: Upload coverage to Codecov
+      if: env.CODECOV_TOKEN != ''
       uses: codecov/codecov-action@v3
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         file: ./target/site/jacoco/jacoco.xml
         flags: unittests
         name: codecov-umbrella
