@@ -16,7 +16,7 @@
 package com.example.collections;
 
 import com.example.collections.types.PhoneType;
-import com.mongocom.annotations.Internal;
+import com.arquivolivre.mongocom.annotations.Internal;
 
 /**
  *

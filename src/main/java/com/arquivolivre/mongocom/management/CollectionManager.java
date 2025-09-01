@@ -112,7 +112,7 @@ public final class CollectionManager implements Closeable {
     try {
       A result = collectionClass.newInstance();
       String collectionName = reflectCollectionName(result);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+      MongoCollection<Document> collection = db.getCollection(collectionName);
       ret = collection.countDocuments(query.getQuery());
     } catch (InstantiationException
         | IllegalAccessException
@@ -149,9 +149,9 @@ public final class CollectionManager implements Closeable {
     try {
       A obj = collectionClass.newInstance();
       String collectionName = reflectCollectionName(obj);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+      MongoCollection<Document> collection = db.getCollection(collectionName);
       
-      FindIterable<org.bson.Document> findIterable = collection.find(query.getQuery());
+      FindIterable<Document> findIterable = collection.find(query.getQuery());
       
       // Apply projection if specified
       if (query.getConstraints() != null) {
@@ -171,7 +171,7 @@ public final class CollectionManager implements Closeable {
         findIterable = findIterable.limit(query.getLimit());
       }
       
-      for (org.bson.Document document : findIterable) {
+      for (Document document : findIterable) {
         loadObject(obj, document);
         resultSet.add(obj);
         obj = collectionClass.newInstance();
@@ -199,8 +199,8 @@ public final class CollectionManager implements Closeable {
     try {
       result = collectionClass.newInstance();
       String collectionName = reflectCollectionName(result);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
-      org.bson.Document doc = collection.find().first();
+      MongoCollection<Document> collection = db.getCollection(collectionName);
+      Document doc = collection.find().first();
       if (doc == null) {
         return null;
       }
@@ -229,14 +229,14 @@ public final class CollectionManager implements Closeable {
     try {
       result = collectionClass.newInstance();
       String collectionName = reflectCollectionName(result);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+      MongoCollection<Document> collection = db.getCollection(collectionName);
       
-      FindIterable<org.bson.Document> findIterable = collection.find(query.getQuery());
+      FindIterable<Document> findIterable = collection.find(query.getQuery());
       if (query.getConstraints() != null) {
         findIterable = findIterable.projection(query.getConstraints());
       }
       
-      org.bson.Document doc = findIterable.first();
+      Document doc = findIterable.first();
       if (doc == null) {
         return null;
       }
@@ -271,9 +271,9 @@ public final class CollectionManager implements Closeable {
    */
   public void remove(Object document) {
     try {
-      org.bson.Document doc = loadDocument(document);
+      Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+      MongoCollection<Document> collection = db.getCollection(collectionName);
       collection.deleteOne(doc);
     } catch (InstantiationException
         | NoSuchMethodException
@@ -297,9 +297,9 @@ public final class CollectionManager implements Closeable {
       return _id;
     }
     try {
-      org.bson.Document doc = loadDocument(document);
+      Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+      MongoCollection<Document> collection = db.getCollection(collectionName);
       InsertOneResult result = collection.insertOne(doc);
       if (result.getInsertedId() != null) {
         _id = result.getInsertedId().asObjectId().getValue().toString();
@@ -339,14 +339,14 @@ public final class CollectionManager implements Closeable {
   public void update(
       MongoQuery query, Object document, boolean upsert, boolean multi, WriteConcern concern) {
     try {
-      org.bson.Document doc = loadDocument(document);
+      Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName).withWriteConcern(concern);
+      MongoCollection<Document> collection = db.getCollection(collectionName).withWriteConcern(concern);
       
       if (multi) {
-        collection.updateMany(query.getQuery(), new org.bson.Document("$set", doc));
+        collection.updateMany(query.getQuery(), new Document("$set", doc));
       } else {
-        collection.updateOne(query.getQuery(), new org.bson.Document("$set", doc));
+        collection.updateOne(query.getQuery(), new Document("$set", doc));
       }
     } catch (InstantiationException
         | NoSuchMethodException
@@ -372,9 +372,9 @@ public final class CollectionManager implements Closeable {
       return _id;
     }
     try {
-      org.bson.Document doc = loadDocument(document);
+      Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+      MongoCollection<Document> collection = db.getCollection(collectionName);
       
       // If document has _id, use replaceOne with upsert, otherwise insertOne
       if (doc.containsKey("_id")) {
@@ -410,11 +410,11 @@ public final class CollectionManager implements Closeable {
     Field[] fields = getFieldsByAnnotation(document, Index.class);
     Map<String, List<String>> compoundIndexes = new TreeMap<>();
     IndexOptions compoundIndexesOpt = new IndexOptions().background(true);
-    MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+    MongoCollection<Document> collection = db.getCollection(collectionName);
     for (Field field : fields) {
       Annotation annotation = field.getAnnotation(Index.class);
       IndexOptions options = new IndexOptions();
-      org.bson.Document indexKeys = new org.bson.Document();
+      Document indexKeys = new Document();
       String indexName = (String) annotation.annotationType().getMethod("value").invoke(annotation);
       String type = (String) annotation.annotationType().getMethod("type").invoke(annotation);
       boolean unique = (boolean) annotation.annotationType().getMethod("unique").invoke(annotation);
@@ -449,7 +449,7 @@ public final class CollectionManager implements Closeable {
     }
     Set<String> keys = compoundIndexes.keySet();
     for (String key : keys) {
-      org.bson.Document keysObj = new org.bson.Document();
+      Document keysObj = new Document();
       IndexOptions namedOptions = new IndexOptions().background(true).name(key);
       for (String value : compoundIndexes.get(key)) {
         boolean with_ = false;
@@ -467,11 +467,11 @@ public final class CollectionManager implements Closeable {
     }
   }
 
-  private org.bson.Document loadDocument(Object document)
+  private Document loadDocument(Object document)
       throws SecurityException, InstantiationException, InvocationTargetException,
           NoSuchMethodException {
     Field[] fields = document.getClass().getDeclaredFields();
-    org.bson.Document doc = new org.bson.Document();
+    Document doc = new Document();
     for (Field field : fields) {
       try {
         field.setAccessible(true);
@@ -516,7 +516,7 @@ public final class CollectionManager implements Closeable {
     return doc;
   }
 
-  private <A extends Object> void loadObject(A object, org.bson.Document document)
+  private <A extends Object> void loadObject(A object, Document document)
       throws IllegalAccessException, IllegalArgumentException, SecurityException,
           InstantiationException {
     Field[] fields = object.getClass().getDeclaredFields();
@@ -536,7 +536,7 @@ public final class CollectionManager implements Closeable {
         for (Object item : (List) fieldContent) {
           if (isInternal) {
             Object o = fieldArgClass.newInstance();
-            loadObject(o, (org.bson.Document) item);
+            loadObject(o, (Document) item);
             list.add(o);
           } else {
             list.add(item);

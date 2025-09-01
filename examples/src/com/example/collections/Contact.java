@@ -16,10 +16,10 @@
 package com.example.collections;
 
 import com.example.collections.types.ContactType;
-import com.mongocom.annotations.Internal;
-import com.mongocom.annotations.Document;
-import com.mongocom.annotations.ObjectId;
-import com.mongocom.annotations.Reference;
+import com.arquivolivre.mongocom.annotations.Internal;
+import com.arquivolivre.mongocom.annotations.Document;
+import com.arquivolivre.mongocom.annotations.ObjectId;
+import com.arquivolivre.mongocom.annotations.Reference;
 import java.util.ArrayList;
 import java.util.List;
 

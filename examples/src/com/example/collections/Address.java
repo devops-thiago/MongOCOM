@@ -15,7 +15,7 @@
  */
 package com.example.collections;
 
-import com.mongocom.annotations.Internal;
+import com.arquivolivre.mongocom.annotations.Internal;
 
 /**
  *
