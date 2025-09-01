@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>..
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package com.arquivolivre.mongocom.management;
 
+
+import com.arquivolivre.mongocom.annotations.Document;
 import com.arquivolivre.mongocom.annotations.GeneratedValue;
 import com.arquivolivre.mongocom.annotations.Id;
 import com.arquivolivre.mongocom.annotations.Index;
 import com.arquivolivre.mongocom.annotations.Internal;
+import com.arquivolivre.mongocom.annotations.ObjectId;
 import com.arquivolivre.mongocom.annotations.Reference;
 import com.arquivolivre.mongocom.utils.Generator;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.ReplaceOptions;
-import com.mongodb.WriteConcern;
-import org.bson.Document;
-import org.bson.types.ObjectId;
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -43,6 +46,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +55,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bson.BsonValue;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * CollectionManager provides CRUD operations for MongoDB collections.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg at sjrp.unesp.br&gt;.
+ */
+
 public final class CollectionManager implements Closeable {
 
   private final MongoClient client;
@@ -59,6 +70,12 @@ public final class CollectionManager implements Closeable {
   private static final Logger LOG = Logger.getLogger(CollectionManager.class.getName());
 
   // TODO: a better way to manage db connection
+  /**
+   * Creates a new CollectionManager with the specified MongoDB client and database.
+   *
+   * @param client the MongoDB client
+   * @param dataBase the database name
+   */
   protected CollectionManager(MongoClient client, String dataBase) {
     this.client = client;
     if (dataBase != null && !dataBase.equals("")) {
@@ -69,12 +86,27 @@ public final class CollectionManager implements Closeable {
     }
   }
 
+  /**
+   * Creates a new CollectionManager with authentication (deprecated approach).
+   *
+   * @param client the MongoDB client
+   * @param dbName the database name
+   * @param user the username (deprecated)
+   * @param password the password (deprecated)
+   * @deprecated Authentication should be handled during MongoClient creation
+   */
+  @Deprecated
   protected CollectionManager(MongoClient client, String dbName, String user, String password) {
     this(client, dbName);
     // Note: Authentication should be handled during MongoClient creation in newer drivers
     // The authenticate method is deprecated and removed in newer driver versions
   }
 
+  /**
+   * Creates a new CollectionManager with only a MongoDB client.
+   *
+   * @param client the MongoDB client
+   */
   protected CollectionManager(MongoClient client) {
     this.client = client;
   }
@@ -84,6 +116,7 @@ public final class CollectionManager implements Closeable {
    *
    * @param dbName Database name
    */
+
   public void use(String dbName) {
     db = client.getDatabase(dbName);
   }
@@ -92,9 +125,10 @@ public final class CollectionManager implements Closeable {
    * The number of documents in the specified collection.
    *
    * @param <A> generic type of the collection.
-   * @param collectionClass
+   * @param collectionClass the class type of the collection
    * @return the total of documents.
    */
+
   public <A extends Object> long count(Class<A> collectionClass) {
     return count(collectionClass, new MongoQuery());
   }
@@ -103,16 +137,17 @@ public final class CollectionManager implements Closeable {
    * The number of documents that match the specified query.
    *
    * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
+   * @param collectionClass the class type of the collection
+   * @param query the query to filter documents
    * @return the total of documents.
    */
+
   public <A extends Object> long count(Class<A> collectionClass, MongoQuery query) {
-    long ret = 0l;
+    long ret = 0L;
     try {
-      A result = collectionClass.newInstance();
+      A result = collectionClass.getDeclaredConstructor().newInstance();
       String collectionName = reflectCollectionName(result);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
       ret = collection.countDocuments(query.getQuery());
     } catch (InstantiationException
         | IllegalAccessException
@@ -129,9 +164,10 @@ public final class CollectionManager implements Closeable {
    * Find all documents in the specified collection.
    *
    * @param <A> generic type of the collection.
-   * @param collectionClass
+   * @param collectionClass the class type of the collection
    * @return a list of documents.
    */
+
   public <A extends Object> List<A> find(Class<A> collectionClass) {
     return find(collectionClass, new MongoQuery());
   }
@@ -140,29 +176,30 @@ public final class CollectionManager implements Closeable {
    * Find all documents that match the specified query in the given collection.
    *
    * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
+   * @param collectionClass the class type of the collection
+   * @param query the query to filter documents
    * @return a list of documents.
    */
+
   public <A extends Object> List<A> find(Class<A> collectionClass, MongoQuery query) {
     List<A> resultSet = new ArrayList<>();
     try {
-      A obj = collectionClass.newInstance();
+      A obj = collectionClass.getDeclaredConstructor().newInstance();
       String collectionName = reflectCollectionName(obj);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      
-      FindIterable<Document> findIterable = collection.find(query.getQuery());
-      
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+
+      FindIterable<org.bson.Document> findIterable = collection.find(query.getQuery());
+
       // Apply projection if specified
       if (query.getConstraints() != null) {
         findIterable = findIterable.projection(query.getConstraints());
       }
-      
-      // Apply ordering if specified  
+
+      // Apply ordering if specified
       if (query.getOrderBy() != null) {
         findIterable = findIterable.sort(query.getOrderBy());
       }
-      
+
       // Apply skip and limit
       if (query.getSkip() > 0) {
         findIterable = findIterable.skip(query.getSkip());
@@ -170,11 +207,11 @@ public final class CollectionManager implements Closeable {
       if (query.getLimit() > 0) {
         findIterable = findIterable.limit(query.getLimit());
       }
-      
-      for (Document document : findIterable) {
+
+      for (org.bson.Document document : findIterable) {
         loadObject(obj, document);
         resultSet.add(obj);
-        obj = collectionClass.newInstance();
+        obj = collectionClass.getDeclaredConstructor().newInstance();
       }
     } catch (InstantiationException
         | IllegalAccessException
@@ -191,16 +228,17 @@ public final class CollectionManager implements Closeable {
    * Find a single document of the specified collection.
    *
    * @param <A> generic type of the collection.
-   * @param collectionClass
+   * @param collectionClass the class type of the collection
    * @return a document.
    */
+
   public <A extends Object> A findOne(Class<A> collectionClass) {
     A result = null;
     try {
-      result = collectionClass.newInstance();
+      result = collectionClass.getDeclaredConstructor().newInstance();
       String collectionName = reflectCollectionName(result);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      Document doc = collection.find().first();
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+      org.bson.Document doc = collection.find().first();
       if (doc == null) {
         return null;
       }
@@ -220,23 +258,24 @@ public final class CollectionManager implements Closeable {
    * Find a single document that matches the specified query in the given collection.
    *
    * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
+   * @param collectionClass the class type of the collection
+   * @param query the query to filter documents
    * @return a document.
    */
+
   public <A extends Object> A findOne(Class<A> collectionClass, MongoQuery query) {
     A result = null;
     try {
-      result = collectionClass.newInstance();
+      result = collectionClass.getDeclaredConstructor().newInstance();
       String collectionName = reflectCollectionName(result);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      
-      FindIterable<Document> findIterable = collection.find(query.getQuery());
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+
+      FindIterable<org.bson.Document> findIterable = collection.find(query.getQuery());
       if (query.getConstraints() != null) {
         findIterable = findIterable.projection(query.getConstraints());
       }
-      
-      Document doc = findIterable.first();
+
+      org.bson.Document doc = findIterable.first();
       if (doc == null) {
         return null;
       }
@@ -256,10 +295,11 @@ public final class CollectionManager implements Closeable {
    * Find a single document that matches the specified id in the given collection.
    *
    * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param id
+   * @param collectionClass the class type of the collection
+   * @param id the document ID
    * @return a document.
    */
+
   public <A extends Object> A findById(Class<A> collectionClass, String id) {
     return findOne(collectionClass, new MongoQuery("_id", id));
   }
@@ -269,11 +309,12 @@ public final class CollectionManager implements Closeable {
    *
    * @param document to be removed.
    */
+
   public void remove(Object document) {
     try {
-      Document doc = loadDocument(document);
+      org.bson.Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
       collection.deleteOne(doc);
     } catch (InstantiationException
         | NoSuchMethodException
@@ -286,31 +327,41 @@ public final class CollectionManager implements Closeable {
   }
 
   /**
-   * Insert the document in a collection
+   * Insert the document in a collection.
    *
-   * @param document
+   * @param document the document to insert
    * @return the <code>_id</code> of the inserted document, <code>null</code> if fails.
    */
+
   public String insert(Object document) {
-    String _id = null;
+    String objectId = null;
     if (document == null) {
-      return _id;
+      return objectId;
     }
     try {
-      Document doc = loadDocument(document);
+      org.bson.Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
       InsertOneResult result = collection.insertOne(doc);
-      if (result.getInsertedId() != null) {
-        _id = result.getInsertedId().asObjectId().getValue().toString();
+      BsonValue insertedId = result.getInsertedId();
+      if (insertedId != null) {
+        try {
+          objectId = insertedId.asObjectId().getValue().toString();
+        } catch (ClassCastException e) {
+          // Handle case where _id is not an ObjectId
+          objectId = insertedId.toString();
+        }
       } else if (doc.containsKey("_id")) {
-        _id = doc.get("_id").toString();
+        objectId = doc.get("_id").toString();
       }
-      
-      Field field = getFieldByAnnotation(document, com.arquivolivre.mongocom.annotations.ObjectId.class, false);
+
+      Field field = getFieldByAnnotation(document, ObjectId.class, false);
       if (field != null) {
-        field.setAccessible(true);
-        field.set(document, _id);
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+          field.setAccessible(true);
+          return null;
+        });
+        field.set(document, objectId);
       }
       indexFields(document);
     } catch (InstantiationException
@@ -322,31 +373,56 @@ public final class CollectionManager implements Closeable {
         | NoSuchFieldException ex) {
       LOG.log(Level.SEVERE, "An error occured while inserting this document: {0}", ex.getMessage());
     }
-    if (_id != null) {
-      LOG.log(Level.INFO, "Object \"{0}\" inserted successfully.", _id);
+    if (objectId != null) {
+      LOG.log(Level.INFO, "Object \"{0}\" inserted successfully.", objectId);
     }
-    return _id;
+    return objectId;
   }
 
+  /**
+   * Update a single document in the collection.
+   *
+   * @param query the query to filter documents
+   * @param document the document with updated values
+   */
   public void update(MongoQuery query, Object document) {
     update(query, document, false, false);
   }
 
+  /**
+   * Update documents in the collection.
+   *
+   * @param query the query to filter documents
+   * @param document the document with updated values
+   * @param upsert whether to insert if no match found
+   * @param multi whether to update multiple documents
+   */
   public void update(MongoQuery query, Object document, boolean upsert, boolean multi) {
     update(query, document, upsert, multi, WriteConcern.ACKNOWLEDGED);
   }
 
+  /**
+   * Update documents in the collection with specified WriteConcern.
+   *
+   * @param query the query to filter documents
+   * @param document the document with updated values
+   * @param upsert whether to insert if no match found
+   * @param multi whether to update multiple documents
+   * @param concern the write concern to use
+   */
+
   public void update(
       MongoQuery query, Object document, boolean upsert, boolean multi, WriteConcern concern) {
     try {
-      Document doc = loadDocument(document);
+      org.bson.Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName).withWriteConcern(concern);
-      
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName)
+          .withWriteConcern(concern);
+
       if (multi) {
-        collection.updateMany(query.getQuery(), new Document("$set", doc));
+        collection.updateMany(query.getQuery(), new org.bson.Document("$set", doc));
       } else {
-        collection.updateOne(query.getQuery(), new Document("$set", doc));
+        collection.updateOne(query.getQuery(), new org.bson.Document("$set", doc));
       }
     } catch (InstantiationException
         | NoSuchMethodException
@@ -358,36 +434,55 @@ public final class CollectionManager implements Closeable {
     }
   }
 
+  /**
+   * Update multiple documents in the collection.
+   *
+   * @param query the query to filter documents
+   * @param document the document with updated values
+   */
   public void updateMulti(MongoQuery query, Object document) {
     update(query, document, false, true);
   }
 
+  /**
+   * Save a document to the collection (insert or update based on _id presence).
+   *
+   * @param document the document to save
+   * @return the object ID of the saved document
+   */
   public String save(Object document) {
     // TODO: a better way to throw/treat exceptions
     /*if (!document.getClass().isAnnotationPresent(Document.class)) {
     throw new NoSuchMongoCollectionException(document.getClass() + " is not a valid Document.");
     }*/
-    String _id = null;
+
+    String objectId = null;
     if (document == null) {
-      return _id;
+      return objectId;
     }
     try {
-      Document doc = loadDocument(document);
+      org.bson.Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      
+      MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
+
       // If document has _id, use replaceOne with upsert, otherwise insertOne
       if (doc.containsKey("_id")) {
-        collection.replaceOne(Filters.eq("_id", doc.get("_id")), doc, 
+        collection.replaceOne(Filters.eq("_id", doc.get("_id")), doc,
             new ReplaceOptions().upsert(true));
-        _id = doc.get("_id").toString();
+        objectId = doc.get("_id").toString();
       } else {
         InsertOneResult result = collection.insertOne(doc);
-        if (result.getInsertedId() != null) {
-          _id = result.getInsertedId().asObjectId().getValue().toString();
+        BsonValue insertedId = result.getInsertedId();
+        if (insertedId != null) {
+          try {
+            objectId = insertedId.asObjectId().getValue().toString();
+          } catch (ClassCastException e) {
+            // Handle case where _id is not an ObjectId
+            objectId = insertedId.toString();
+          }
         }
       }
-      
+
       indexFields(document);
     } catch (InstantiationException
         | IllegalAccessException
@@ -397,10 +492,10 @@ public final class CollectionManager implements Closeable {
         | SecurityException ex) {
       LOG.log(Level.SEVERE, "An error occured while saving this document: {0}", ex.getMessage());
     }
-    if (_id != null) {
-      LOG.log(Level.INFO, "Object \"{0}\" saved successfully.", _id);
+    if (objectId != null) {
+      LOG.log(Level.INFO, "Object \"{0}\" saved successfully.", objectId);
     }
-    return _id;
+    return objectId;
   }
 
   private void indexFields(Object document)
@@ -410,29 +505,29 @@ public final class CollectionManager implements Closeable {
     Field[] fields = getFieldsByAnnotation(document, Index.class);
     Map<String, List<String>> compoundIndexes = new TreeMap<>();
     IndexOptions compoundIndexesOpt = new IndexOptions().background(true);
-    MongoCollection<Document> collection = db.getCollection(collectionName);
+    MongoCollection<org.bson.Document> collection = db.getCollection(collectionName);
     for (Field field : fields) {
       Annotation annotation = field.getAnnotation(Index.class);
       IndexOptions options = new IndexOptions();
-      Document indexKeys = new Document();
       String indexName = (String) annotation.annotationType().getMethod("value").invoke(annotation);
-      String type = (String) annotation.annotationType().getMethod("type").invoke(annotation);
+      final String type = (String) annotation.annotationType().getMethod("type").invoke(annotation);
       boolean unique = (boolean) annotation.annotationType().getMethod("unique").invoke(annotation);
-      boolean sparse = (boolean) annotation.annotationType().getMethod("sparse").invoke(annotation);
+      final boolean sparse = (boolean) annotation.annotationType().getMethod("sparse")
+          .invoke(annotation);
       boolean dropDups =
           (boolean) annotation.annotationType().getMethod("dropDups").invoke(annotation);
       boolean background =
           (boolean) annotation.annotationType().getMethod("background").invoke(annotation);
-      int order = (int) annotation.annotationType().getMethod("order").invoke(annotation);
+      final int order = (int) annotation.annotationType().getMethod("order").invoke(annotation);
       if (!indexName.equals("")) {
         options.name(indexName);
       }
       options.background(background);
       options.unique(unique);
       options.sparse(sparse);
-      // Note: dropDups is deprecated in newer MongoDB versions and not supported in driver 5.x
       String fieldName = field.getName();
       if (indexName.equals("") && type.equals("")) {
+        final org.bson.Document indexKeys = new org.bson.Document();
         indexKeys.append(fieldName, order);
         collection.createIndex(indexKeys, options);
       } else if (!indexName.equals("") && type.equals("")) {
@@ -443,22 +538,24 @@ public final class CollectionManager implements Closeable {
         }
         result.add(fieldName + "_" + order);
       } else if (!type.equals("")) {
-        indexKeys.append(fieldName, type);
-        collection.createIndex(indexKeys, compoundIndexesOpt);
+        final org.bson.Document typeIndexKeys = new org.bson.Document();
+        typeIndexKeys.append(fieldName, type);
+        collection.createIndex(typeIndexKeys, compoundIndexesOpt);
       }
     }
-    Set<String> keys = compoundIndexes.keySet();
-    for (String key : keys) {
-      Document keysObj = new Document();
+    for (Map.Entry<String, List<String>> entry : compoundIndexes.entrySet()) {
+      String key = entry.getKey();
+      List<String> values = entry.getValue();
+      org.bson.Document keysObj = new org.bson.Document();
       IndexOptions namedOptions = new IndexOptions().background(true).name(key);
-      for (String value : compoundIndexes.get(key)) {
-        boolean with_ = false;
+      for (String value : values) {
+        boolean withUnderscore = false;
         if (value.startsWith("_")) {
           value = value.replaceFirst("_", "");
-          with_ = true;
+          withUnderscore = true;
         }
         String[] opt = value.split("_");
-        if (with_) {
+        if (withUnderscore) {
           opt[0] = "_" + opt[0];
         }
         keysObj.append(opt[0], Integer.parseInt(opt[1]));
@@ -467,14 +564,17 @@ public final class CollectionManager implements Closeable {
     }
   }
 
-  private Document loadDocument(Object document)
+  private org.bson.Document loadDocument(Object document)
       throws SecurityException, InstantiationException, InvocationTargetException,
           NoSuchMethodException {
     Field[] fields = document.getClass().getDeclaredFields();
-    Document doc = new Document();
+    org.bson.Document doc = new org.bson.Document();
     for (Field field : fields) {
       try {
-        field.setAccessible(true);
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+          field.setAccessible(true);
+          return null;
+        });
         String fieldName = field.getName();
         Object fieldContent = field.get(document);
         if (fieldContent == null && !field.isAnnotationPresent(GeneratedValue.class)) {
@@ -494,7 +594,7 @@ public final class CollectionManager implements Closeable {
         } else if (field.getType().isEnum()) {
           doc.append(fieldName, fieldContent.toString());
         } else if (field.isAnnotationPresent(Reference.class)) {
-          doc.append(fieldName, new ObjectId(save(fieldContent)));
+          doc.append(fieldName, new org.bson.types.ObjectId(save(fieldContent)));
         } else if (field.isAnnotationPresent(Internal.class)) {
           doc.append(fieldName, loadDocument(fieldContent));
         } else if (field.isAnnotationPresent(Id.class) && !fieldContent.equals("")) {
@@ -504,10 +604,10 @@ public final class CollectionManager implements Closeable {
           if (value != null) {
             doc.append(fieldName, value);
           }
-        } else if (!field.isAnnotationPresent(com.arquivolivre.mongocom.annotations.ObjectId.class)) {
+        } else if (!field.isAnnotationPresent(ObjectId.class)) {
           doc.append(fieldName, fieldContent);
         } else if (!fieldContent.equals("")) {
-          doc.append("_id", new ObjectId((String) fieldContent));
+          doc.append("_id", new org.bson.types.ObjectId((String) fieldContent));
         }
       } catch (IllegalArgumentException | IllegalAccessException ex) {
         LOG.log(Level.SEVERE, null, ex);
@@ -516,12 +616,15 @@ public final class CollectionManager implements Closeable {
     return doc;
   }
 
-  private <A extends Object> void loadObject(A object, Document document)
+  private <A extends Object> void loadObject(A object, org.bson.Document document)
       throws IllegalAccessException, IllegalArgumentException, SecurityException,
-          InstantiationException {
+          InstantiationException, NoSuchMethodException, InvocationTargetException {
     Field[] fields = object.getClass().getDeclaredFields();
     for (Field field : fields) {
-      field.setAccessible(true);
+      AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+        field.setAccessible(true);
+        return null;
+      });
       String fieldName = field.getName();
       Object fieldContent = document.get(fieldName);
       if (fieldContent instanceof List) {
@@ -535,8 +638,8 @@ public final class CollectionManager implements Closeable {
         boolean isInternal = field.isAnnotationPresent(Internal.class);
         for (Object item : (List) fieldContent) {
           if (isInternal) {
-            Object o = fieldArgClass.newInstance();
-            loadObject(o, (Document) item);
+            Object o = fieldArgClass.getDeclaredConstructor().newInstance();
+            loadObject(o, (org.bson.Document) item);
             list.add(o);
           } else {
             list.add(item);
@@ -544,13 +647,15 @@ public final class CollectionManager implements Closeable {
         }
         field.set(object, list);
       } else if ((fieldContent != null) && field.getType().isEnum()) {
-        field.set(object, Enum.valueOf((Class) field.getType(), (String) fieldContent));
+        Enum<?> enumValue = Enum.valueOf((Class<Enum>) field.getType(), (String) fieldContent);
+        field.set(object, enumValue);
       } else if ((fieldContent != null) && field.isAnnotationPresent(Reference.class)) {
         field.set(
-            object, findById(field.getType(), ((ObjectId) fieldContent).toString()));
+            object, findById(field.getType(), ((org.bson.types.ObjectId) fieldContent).toString()));
       } else if (field.isAnnotationPresent(com.arquivolivre.mongocom.annotations.ObjectId.class)) {
-        field.set(object, ((ObjectId) document.get("_id")).toString());
+        field.set(object, ((org.bson.types.ObjectId) document.get("_id")).toString());
       } else if (field.getType().isPrimitive() && (fieldContent == null)) {
+        // Skip setting null values for primitive fields
       } else if (fieldContent != null) {
         field.set(object, fieldContent);
       }
@@ -606,13 +711,13 @@ public final class CollectionManager implements Closeable {
         methodsAnnotated.add(method);
       }
     }
-    return (Method[]) methodsAnnotated.toArray();
+    return methodsAnnotated.toArray(new Method[0]);
   }
 
   private String reflectCollectionName(Object document)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException,
           SecurityException, IllegalArgumentException {
-    Annotation annotation = document.getClass().getAnnotation(com.arquivolivre.mongocom.annotations.Document.class);
+    Annotation annotation = document.getClass().getAnnotation(Document.class);
     String coll = (String) annotation.annotationType().getMethod("collection").invoke(annotation);
     if (coll.equals("")) {
       coll = document.getClass().getSimpleName();
@@ -626,9 +731,10 @@ public final class CollectionManager implements Closeable {
     Annotation annotation = field.getAnnotation(Id.class);
     Boolean autoIncrement =
         (Boolean) annotation.annotationType().getMethod("autoIncrement").invoke(annotation);
-    Class generator = (Class) annotation.annotationType().getMethod("generator").invoke(annotation);
+    Class<? extends Generator> generator = (Class<? extends Generator>) annotation
+        .annotationType().getMethod("generator").invoke(annotation);
     if (autoIncrement) {
-      Generator g = (Generator) generator.newInstance();
+      Generator g = generator.getDeclaredConstructor().newInstance();
       return g.generateValue(field.getDeclaringClass(), db);
     }
     return null;
@@ -640,8 +746,9 @@ public final class CollectionManager implements Closeable {
     Annotation annotation = field.getAnnotation(GeneratedValue.class);
     Class<? extends Annotation> annotationType = annotation.annotationType();
     Boolean update = (Boolean) annotationType.getMethod("update").invoke(annotation);
-    Class generator = (Class) annotationType.getMethod("generator").invoke(annotation);
-    Generator g = (Generator) generator.newInstance();
+    Class<? extends Generator> generator = (Class<? extends Generator>) annotationType
+        .getMethod("generator").invoke(annotation);
+    Generator g = generator.getDeclaredConstructor().newInstance();
     if ((update && (oldValue != null)) || (oldValue == null)) {
       return g.generateValue(field.getDeclaringClass(), db);
     } else if (oldValue instanceof Number) {
@@ -656,17 +763,23 @@ public final class CollectionManager implements Closeable {
     return null;
   }
 
+  /**
+   * Get the connection status of the MongoDB client.
+   *
+   * @return connection status information
+   */
   public String getStatus() {
     try {
       // Run a ping command to check connectivity
-      Document ping = new Document("ping", 1);
-      Document result = db.runCommand(ping);
+      org.bson.Document ping = new org.bson.Document("ping", 1);
+      org.bson.Document result = db.runCommand(ping);
       // Get database names as additional info
       List<String> dbNames = new ArrayList<>();
       for (String name : client.listDatabaseNames()) {
         dbNames.add(name);
       }
-      return "MongoDB client connected. Ping result: " + result.toJson() + ". Databases: " + dbNames;
+      return "MongoDB client connected. Ping result: " + result.toJson()
+          + ". Databases: " + dbNames;
     } catch (Exception e) {
       return "MongoDB client connection error: " + e.getMessage();
     }

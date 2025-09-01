@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg at sjrp.unesp.br&gt;.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.types;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * IndexType provides constants for MongoDB index types.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg at sjrp.unesp.br&gt;.
+ */
+
 public class IndexType {
 
   public static final int INDEX_ASCENDING = 1;

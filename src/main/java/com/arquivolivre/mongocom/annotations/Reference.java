@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>..
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.arquivolivre.mongocom.annotations;
 
 import java.lang.annotation.ElementType;
@@ -21,7 +22,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * Reference annotation for marking fields as references to other documents.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>.
+ */
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Reference {}
+public @interface Reference {
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>..
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.annotations;
 
 import com.arquivolivre.mongocom.types.Action;
@@ -22,12 +23,27 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * Trigger annotation for marking methods as database triggers.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>.
+ */
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Trigger {
 
+  /**
+   * The action that triggers this method.
+   *
+   * @return the trigger action
+   */
   Action value();
 
+  /**
+   * When the trigger should be executed.
+   *
+   * @return the trigger timing
+   */
   TriggerType when() default TriggerType.BEFORE;
 }

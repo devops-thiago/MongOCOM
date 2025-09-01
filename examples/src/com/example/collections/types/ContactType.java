@@ -22,5 +22,5 @@ package com.example.collections.types;
 public enum ContactType {
 
     PERSON, COMPANY
-    
+
 }

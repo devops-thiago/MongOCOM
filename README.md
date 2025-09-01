@@ -67,24 +67,24 @@ import com.arquivolivre.mongocom.annotations.*;
 public class Contact {
     @ObjectId
     private String id;
-    
+
     private String name;
     private String email;
     private ContactType type;
-    
+
     @Internal  // Embedded documents
     private List<Phone> phones;
-    
+
     @Reference  // Reference to another document
     private Contact company;
-    
+
     // Constructors, getters and setters...
     public Contact() {}
-    
+
     public Contact(String name) {
         this.name = name;
     }
-    
+
     // ... other methods
 }
 ```
@@ -98,16 +98,16 @@ public class Phone {
     private int countryCode;
     private int areaCode;
     private int phoneNumber;
-    
+
     public Phone() {} // Required default constructor
-    
+
     public Phone(PhoneType type, int country, int area, int number) {
         this.phoneType = type;
         this.countryCode = country;
         this.areaCode = area;
         this.phoneNumber = number;
     }
-    
+
     // ... getters and setters
 }
 ```
@@ -121,22 +121,22 @@ public class Example {
     public static void main(String[] args) {
         // Create collection manager
         CollectionManager cm = CollectionManagerFactory.createCollectionManager();
-        
+
         // Create a new contact
         Contact contact = new Contact("John Doe");
         contact.setEmail("john@example.com");
         contact.addPhone(new Phone(PhoneType.MOBILE, 1, 555, 1234567));
-        
+
         // Insert into database
         String id = cm.insert(contact);
         System.out.println("Inserted with ID: " + id);
-        
+
         // Query the database
         Contact found = cm.findOne(Contact.class, new MongoQuery("name", "John Doe"));
         if (found != null) {
             System.out.println("Found: " + found.getName());
         }
-        
+
         // Close connection
         cm.close();
     }
@@ -238,16 +238,16 @@ CollectionManager cm = CollectionManagerFactory.setup(servletContext);
 public class Order {
     @ObjectId
     private String id;
-    
+
     private String orderNumber;
     private Date orderDate;
-    
+
     @Internal
     private List<OrderItem> items;
-    
+
     @Internal
     private Address shippingAddress;
-    
+
     // ... constructors, getters, setters
 }
 
@@ -256,7 +256,7 @@ public class OrderItem {
     private String productName;
     private int quantity;
     private double price;
-    
+
     // ... constructors, getters, setters
 }
 ```
@@ -269,10 +269,10 @@ public class User {
     @ObjectId
     private String id;
     private String username;
-    
+
     @Reference
     private Profile profile;  // Reference to another document
-    
+
     // ... other fields and methods
 }
 
@@ -282,7 +282,7 @@ public class Profile {
     private String id;
     private String firstName;
     private String lastName;
-    
+
     // ... other fields and methods
 }
 ```
