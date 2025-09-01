@@ -1,1 +1,16 @@
 /target/
+
+# Example database configuration (contains sensitive data)
+examples/conf/database.properties
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db

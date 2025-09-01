@@ -19,9 +19,9 @@ import com.example.collections.Contact;
 import com.example.collections.Phone;
 import com.example.collections.types.ContactType;
 import com.example.collections.types.PhoneType;
-import com.mongocom.management.CollectionManager;
-import com.mongocom.management.CollectionManagerFactory;
-import com.mongocom.management.MongoQuery;
+import com.arquivolivre.mongocom.management.CollectionManager;
+import com.arquivolivre.mongocom.management.CollectionManagerFactory;
+import com.arquivolivre.mongocom.management.MongoQuery;
 
 /**
  *
@@ -30,7 +30,10 @@ import com.mongocom.management.MongoQuery;
 public class Main {
 
     public static void main(String[] args) {
-        CollectionManager cm = CollectionManagerFactory.createCollectionManager();
+        // Connect to MongoDB using the framework's built-in configuration support
+        // The framework automatically loads configuration from conf/database.properties (or .conf/.config)
+        System.out.println("Loading MongoDB configuration from conf/database.properties...");
+        CollectionManager cm = CollectionManagerFactory.setup();
         //create a document with my information
         Contact myself = new Contact("Thiago");
         Contact myCompany = new Contact("My Company");
