@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>..
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg at sjrp.unesp.br&gt;..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package com.arquivolivre.mongocom.types;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * TriggerType enum for defining trigger execution timing.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg at sjrp.unesp.br&gt;.
+ */
 public enum TriggerType {
   BEFORE,
   AFTER

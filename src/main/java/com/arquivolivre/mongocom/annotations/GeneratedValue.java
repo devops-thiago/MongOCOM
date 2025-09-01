@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br&gt;.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.annotations;
 
 import java.lang.annotation.ElementType;
@@ -20,12 +21,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * GeneratedValue annotation for automatic value generation.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface GeneratedValue {
 
+  /**
+   * The generator class to use for value generation.
+   *
+   * @return the generator class
+   */
   Class generator();
 
+  /**
+   * Whether to update the value on document updates.
+   *
+   * @return true if the value should be updated, false otherwise
+   */
   boolean update() default false;
 }
