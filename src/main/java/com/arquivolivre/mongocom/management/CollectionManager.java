@@ -657,7 +657,19 @@ public final class CollectionManager implements Closeable {
   }
 
   public String getStatus() {
-    return "MongoDB client connected"; // Simplified status - old methods getAddress() and getMongoOptions() no longer available
+    try {
+      // Run a ping command to check connectivity
+      Document ping = new Document("ping", 1);
+      Document result = db.runCommand(ping);
+      // Get database names as additional info
+      List<String> dbNames = new ArrayList<>();
+      for (String name : client.listDatabaseNames()) {
+        dbNames.add(name);
+      }
+      return "MongoDB client connected. Ping result: " + result.toJson() + ". Databases: " + dbNames;
+    } catch (Exception e) {
+      return "MongoDB client connection error: " + e.getMessage();
+    }
   }
 
   @Override
