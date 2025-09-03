@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br&gt;.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.utils;
 
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * IntegerGenerator provides auto-incrementing integer values.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>
+ */
 public class IntegerGenerator implements Generator {
 
   @Override
-  public Integer generateValue(Class parent, MongoDatabase db) {
+  @SuppressWarnings("unchecked")
+  public <A> A generateValue(Class parent, MongoDatabase db) {
     MongoCollection<Document> collection = db.getCollection("values_" + parent.getSimpleName());
     Document o = collection.find().first();
     int value = 0;
@@ -38,6 +44,6 @@ public class IntegerGenerator implements Generator {
     } else {
       collection.insertOne(o);
     }
-    return value;
+    return (A) Integer.valueOf(value);
   }
 }

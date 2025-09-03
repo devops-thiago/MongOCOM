@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>..
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br&gt;.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,42 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * MongoQuery provides a fluent interface for building MongoDB queries.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg at sjrp.unesp.br&gt;.
+ */
 public final class MongoQuery {
 
-  private Document query;
-  private Document constraints;
-  private Document orderBy;
   public static final int ORDER_ASC = 1;
   public static final int ORDER_DESC = -1;
+  private final Document query;
+  private Document constraints;
+  private Document orderBy;
   private int limit;
   private int skip;
 
+  /** Creates a new empty MongoQuery. */
   public MongoQuery() {
     query = new Document();
   }
 
+  /**
+   * Creates a new MongoQuery with an initial field-value criteria.
+   *
+   * @param field the field name
+   * @param value the field value to match
+   */
   public MongoQuery(String field, Object value) {
     this();
     add(field, value);
   }
 
   /**
-   * Set a criteria to the query
+   * Set a criteria to the query.
    *
    * @param field field name
-   * @param value
+   * @param value field value to match
    * @return the same object instance
    */
   public MongoQuery add(String field, Object value) {
@@ -75,7 +83,7 @@ public final class MongoQuery {
   }
 
   /**
-   * Limit the fields returned in a document result set
+   * Limit the fields returned in a document result set.
    *
    * @param returnId return the _id field in the result set if true
    * @param fields field names to be returned in the result set
@@ -102,12 +110,18 @@ public final class MongoQuery {
     }
   }
 
+  /**
+   * Set the ordering for query results.
+   *
+   * @param field the field to order by
+   * @param order the order direction (ORDER_ASC or ORDER_DESC)
+   */
   public void orderBy(String field, int order) {
     orderBy = new Document();
     orderBy.append(field, order);
   }
 
-  /** mark to remove _id field from the result document. */
+  /** Mark to remove _id field from the result document. */
   public void removeIdFromResult() {
     if (constraints == null) {
       constraints = new Document();
@@ -116,21 +130,26 @@ public final class MongoQuery {
   }
 
   public Document getQuery() {
-    return query;
+    return query != null ? new Document(query) : null;
   }
 
   public Document getConstraints() {
-    return constraints;
+    return constraints != null ? new Document(constraints) : null;
   }
 
   public Document getOrderBy() {
-    return orderBy;
+    return orderBy != null ? new Document(orderBy) : null;
   }
 
   public int getLimit() {
     return limit;
   }
 
+  /**
+   * Set the maximum number of documents to return.
+   *
+   * @param limit the maximum number of documents
+   */
   public void limit(int limit) {
     this.limit = limit;
   }
@@ -139,6 +158,11 @@ public final class MongoQuery {
     return skip;
   }
 
+  /**
+   * Set the number of documents to skip before returning results.
+   *
+   * @param skip the number of documents to skip
+   */
   public void skip(int skip) {
     this.skip = skip;
   }

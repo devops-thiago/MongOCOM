@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br&gt;.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,16 @@ package com.arquivolivre.mongocom.utils;
 import com.mongodb.client.MongoDatabase;
 import java.util.Date;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * DateGenerator provides current date values.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>
+ */
 public class DateGenerator implements Generator {
 
   @Override
-  public Date generateValue(Class parent, MongoDatabase db) {
-    return new Date();
+  @SuppressWarnings("unchecked")
+  public <A> A generateValue(Class parent, MongoDatabase db) {
+    return (A) new Date();
   }
 }
