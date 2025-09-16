@@ -2,8 +2,8 @@ package com.arquivolivre.mongocom.utils;
 
 import com.mongodb.client.MongoDatabase;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -106,6 +106,6 @@ class DateGeneratorTest {
 
         // Should be generated within 1 second of system time
         assertTrue(timeDifference < 1000,
-            "Generated date should be close to system time");
+                "Generated date should be close to system time");
     }
 }

@@ -15,12 +15,12 @@ package com.arquivolivre.mongocom.exceptions;
 
 public class NoSuchMongoCollectionException extends Exception {
 
-  /**
-   * Constructs a new NoSuchMongoCollectionException with the specified detail message.
-   *
-   * @param message the detail message
-   */
-  public NoSuchMongoCollectionException(String message) {
-    super(message);
-  }
+    /**
+     * Constructs a new NoSuchMongoCollectionException with the specified detail message.
+     *
+     * @param message the detail message
+     */
+    public NoSuchMongoCollectionException(String message) {
+        super(message);
+    }
 }

@@ -32,10 +32,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Document {
 
-  /**
-   * The name of the MongoDB collection to use.
-   *
-   * @return the collection name, or empty string to use the class name
-   */
-  String collection() default "";
+    /**
+     * The name of the MongoDB collection to use.
+     *
+     * @return the collection name, or empty string to use the class name
+     */
+    String collection() default "";
 }

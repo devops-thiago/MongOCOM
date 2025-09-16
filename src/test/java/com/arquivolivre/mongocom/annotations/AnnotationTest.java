@@ -3,8 +3,8 @@ package com.arquivolivre.mongocom.annotations;
 import com.arquivolivre.mongocom.types.Action;
 import com.arquivolivre.mongocom.types.TriggerType;
 import com.arquivolivre.mongocom.utils.IntegerGenerator;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,32 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Annotation Tests")
 class AnnotationTest {
-
-    @Document(collection = "test_collection")
-    static class TestDocumentClass {
-        @ObjectId
-        private String id;
-
-        @Id
-        private String customId;
-
-        @GeneratedValue(generator = IntegerGenerator.class)
-        private String generatedField;
-
-        @Index(value = "test_index", type = "text")
-        private String indexedField;
-
-        @Internal
-        private String internalField;
-
-        @Reference
-        private String referenceField;
-
-        @Trigger(Action.ON_INSERT)
-        public void afterInsertTrigger() {
-            // Test trigger method
-        }
-    }
 
     @Test
     @DisplayName("Document annotation should be present and accessible")
@@ -152,15 +126,15 @@ class AnnotationTest {
     @DisplayName("All annotations should have runtime retention")
     void testAnnotationRetentionPolicies() {
         Class<?>[] annotationClasses = {
-            Document.class, ObjectId.class, Id.class, GeneratedValue.class,
-            Index.class, Internal.class, Reference.class, Trigger.class
+                Document.class, ObjectId.class, Id.class, GeneratedValue.class,
+                Index.class, Internal.class, Reference.class, Trigger.class
         };
 
         for (Class<?> annotationClass : annotationClasses) {
             Retention retention = annotationClass.getAnnotation(Retention.class);
             assertNotNull(retention, annotationClass.getSimpleName() + " should have @Retention");
             assertEquals(RetentionPolicy.RUNTIME, retention.value(),
-                annotationClass.getSimpleName() + " should have RUNTIME retention");
+                    annotationClass.getSimpleName() + " should have RUNTIME retention");
         }
     }
 
@@ -168,8 +142,8 @@ class AnnotationTest {
     @DisplayName("Field annotations should target fields")
     void testFieldAnnotationTargets() {
         Class<?>[] fieldAnnotations = {
-            ObjectId.class, Id.class, GeneratedValue.class,
-            Index.class, Internal.class, Reference.class
+                ObjectId.class, Id.class, GeneratedValue.class,
+                Index.class, Internal.class, Reference.class
         };
 
         for (Class<?> annotationClass : fieldAnnotations) {
@@ -185,7 +159,7 @@ class AnnotationTest {
                 }
             }
             assertTrue(hasFieldTarget,
-                annotationClass.getSimpleName() + " should target FIELD");
+                    annotationClass.getSimpleName() + " should target FIELD");
         }
     }
 
@@ -221,5 +195,31 @@ class AnnotationTest {
         // The default should be an empty string
         Object defaultValue = collectionMethod.getDefaultValue();
         assertEquals("", defaultValue);
+    }
+
+    @Document(collection = "test_collection")
+    static class TestDocumentClass {
+        @ObjectId
+        private String id;
+
+        @Id
+        private String customId;
+
+        @GeneratedValue(generator = IntegerGenerator.class)
+        private String generatedField;
+
+        @Index(value = "test_index", type = "text")
+        private String indexedField;
+
+        @Internal
+        private String internalField;
+
+        @Reference
+        private String referenceField;
+
+        @Trigger(Action.ON_INSERT)
+        public void afterInsertTrigger() {
+            // Test trigger method
+        }
     }
 }

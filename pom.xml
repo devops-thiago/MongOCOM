@@ -136,7 +136,6 @@
                 <version>3.6.0</version>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
-                    <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>false</failsOnError>
                     <failOnViolation>false</failOnViolation>
@@ -219,11 +218,32 @@
             <artifactId>jakarta.jakartaee-web-api</artifactId>
             <version>10.0.0</version>
         </dependency>
+
+        <!-- SLF4J API -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+
+        <!-- Logback Classic (SLF4J implementation) -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.11</version>
+        </dependency>
+
+        <!-- Bridge from JUL to SLF4J (optional, for compatibility) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>2.0.9</version>
+        </dependency>
     </dependencies>
 
     <developers>
         <developer>
-            <name>javaboybr</name>
+            <name>Thiago Gonzaga</name>
             <email>thiagosg@sjrp.unesp.br</email>
         </developer>
     </developers>

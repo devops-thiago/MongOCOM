@@ -18,6 +18,7 @@
 package com.arquivolivre.mongocom.utils;
 
 import com.mongodb.client.MongoDatabase;
+
 import java.util.Date;
 
 /**
@@ -28,8 +29,8 @@ import java.util.Date;
 
 public class DateGenerator implements Generator {
 
-  @Override
-  public <A> A generateValue(Class parent, MongoDatabase db) {
-    return (A) new Date();
-  }
+    @Override
+    public <A> A generateValue(Class parent, MongoDatabase db) {
+        return (A) new Date();
+    }
 }

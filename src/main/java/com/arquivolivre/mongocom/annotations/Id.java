@@ -17,6 +17,7 @@
 package com.arquivolivre.mongocom.annotations;
 
 import com.arquivolivre.mongocom.utils.IntegerGenerator;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -32,17 +33,17 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Id {
 
-  /**
-   * Whether the ID should be auto-incremented.
-   *
-   * @return true if auto-increment is enabled, false otherwise
-   */
-  boolean autoIncrement() default true;
+    /**
+     * Whether the ID should be auto-incremented.
+     *
+     * @return true if auto-increment is enabled, false otherwise
+     */
+    boolean autoIncrement() default true;
 
-  /**
-   * The generator class to use for ID generation.
-   *
-   * @return the generator class
-   */
-  Class generator() default IntegerGenerator.class;
+    /**
+     * The generator class to use for ID generation.
+     *
+     * @return the generator class
+     */
+    Class generator() default IntegerGenerator.class;
 }

@@ -26,13 +26,13 @@ import com.mongodb.client.MongoDatabase;
 
 public interface Generator {
 
-  /**
-   * Generate a value for the specified parent class and database.
-   *
-   * @param <A> the type of value to generate
-   * @param parent the parent class requesting the generated value
-   * @param db the MongoDB database
-   * @return the generated value
-   */
-  <A extends Object> A generateValue(Class parent, MongoDatabase db);
+    /**
+     * Generate a value for the specified parent class and database.
+     *
+     * @param <A>    the type of value to generate
+     * @param parent the parent class requesting the generated value
+     * @param db     the MongoDB database
+     * @return the generated value
+     */
+    <A extends Object> A generateValue(Class parent, MongoDatabase db);
 }

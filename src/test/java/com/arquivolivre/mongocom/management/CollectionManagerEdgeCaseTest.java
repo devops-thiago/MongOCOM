@@ -1,32 +1,22 @@
 package com.arquivolivre.mongocom.management;
 
-import com.arquivolivre.mongocom.annotations.Document;
-import com.arquivolivre.mongocom.annotations.ObjectId;
-import com.arquivolivre.mongocom.annotations.GeneratedValue;
-import com.arquivolivre.mongocom.annotations.Id;
-import com.arquivolivre.mongocom.annotations.Reference;
-import com.arquivolivre.mongocom.annotations.Internal;
-import com.arquivolivre.mongocom.annotations.Index;
-import com.arquivolivre.mongocom.utils.IntegerGenerator;
+import com.arquivolivre.mongocom.annotations.*;
 import com.arquivolivre.mongocom.utils.DateGenerator;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCursor;
+import com.arquivolivre.mongocom.utils.IntegerGenerator;
+import com.mongodb.client.*;
 import com.mongodb.client.result.InsertOneResult;
 import org.bson.BsonObjectId;
 import org.bson.conversions.Bson;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -54,85 +44,6 @@ class CollectionManagerEdgeCaseTest {
     private InsertOneResult mockInsertResult;
 
     // Edge case test classes
-
-    @Document(collection = "multiple_objectid")
-    static class DocumentWithMultipleObjectIds {
-        @ObjectId
-        private String id1;
-
-        @ObjectId
-        private String id2; // Multiple @ObjectId fields to test warning
-
-        public DocumentWithMultipleObjectIds() {}
-
-        public String getId1() { return id1; }
-        public void setId1(String id1) { this.id1 = id1; }
-        public String getId2() { return id2; }
-        public void setId2(String id2) { this.id2 = id2; }
-    }
-
-    @Document(collection = "no_objectid")
-    static class DocumentWithoutObjectId {
-        private String name;
-        private int value;
-
-        public DocumentWithoutObjectId() {}
-
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public int getValue() { return value; }
-        public void setValue(int value) { this.value = value; }
-    }
-
-    @Document(collection = "generated_edge_cases")
-    static class DocumentWithGeneratedEdgeCases {
-        @ObjectId
-        private String id;
-
-        @GeneratedValue(generator = IntegerGenerator.class, update = false)
-        private Integer nonUpdateableNumber = 5; // Non-zero, non-updateable
-
-        @GeneratedValue(generator = IntegerGenerator.class, update = true)
-        private Integer updateableNumber = 10; // Non-zero, updateable
-
-        @GeneratedValue(generator = IntegerGenerator.class)
-        private Integer nullNumber; // null value
-
-        public DocumentWithGeneratedEdgeCases() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public Integer getNonUpdateableNumber() { return nonUpdateableNumber; }
-        public void setNonUpdateableNumber(Integer nonUpdateableNumber) { this.nonUpdateableNumber = nonUpdateableNumber; }
-        public Integer getUpdateableNumber() { return updateableNumber; }
-        public void setUpdateableNumber(Integer updateableNumber) { this.updateableNumber = updateableNumber; }
-        public Integer getNullNumber() { return nullNumber; }
-        public void setNullNumber(Integer nullNumber) { this.nullNumber = nullNumber; }
-    }
-
-    @Document(collection = "primitives_doc")
-    static class DocumentWithPrimitives {
-        @ObjectId
-        private String id;
-
-        private int primitiveInt;
-        private boolean primitiveBoolean;
-        private double primitiveDouble;
-        private String nullableString;
-
-        public DocumentWithPrimitives() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public int getPrimitiveInt() { return primitiveInt; }
-        public void setPrimitiveInt(int primitiveInt) { this.primitiveInt = primitiveInt; }
-        public boolean isPrimitiveBoolean() { return primitiveBoolean; }
-        public void setPrimitiveBoolean(boolean primitiveBoolean) { this.primitiveBoolean = primitiveBoolean; }
-        public double getPrimitiveDouble() { return primitiveDouble; }
-        public void setPrimitiveDouble(double primitiveDouble) { this.primitiveDouble = primitiveDouble; }
-        public String getNullableString() { return nullableString; }
-        public void setNullableString(String nullableString) { this.nullableString = nullableString; }
-    }
 
     @BeforeEach
     void setUp() {
@@ -275,12 +186,24 @@ class CollectionManagerEdgeCaseTest {
             @Id(autoIncrement = true, generator = IntegerGenerator.class)
             private String customId = ""; // Empty string to test empty condition
 
-            public DocumentWithEmptyId() {}
+            public DocumentWithEmptyId() {
+            }
 
-            public String getObjectId() { return objectId; }
-            public void setObjectId(String objectId) { this.objectId = objectId; }
-            public String getCustomId() { return customId; }
-            public void setCustomId(String customId) { this.customId = customId; }
+            public String getObjectId() {
+                return objectId;
+            }
+
+            public String getCustomId() {
+                return customId;
+            }            public void setObjectId(String objectId) {
+                this.objectId = objectId;
+            }
+
+
+
+            public void setCustomId(String customId) {
+                this.customId = customId;
+            }
         }
 
         DocumentWithEmptyId doc = new DocumentWithEmptyId();
@@ -304,12 +227,24 @@ class CollectionManagerEdgeCaseTest {
             @Id(autoIncrement = true, generator = IntegerGenerator.class)
             private String customId = "existing_id"; // Non-empty value
 
-            public DocumentWithNonEmptyId() {}
+            public DocumentWithNonEmptyId() {
+            }
 
-            public String getObjectId() { return objectId; }
-            public void setObjectId(String objectId) { this.objectId = objectId; }
-            public String getCustomId() { return customId; }
-            public void setCustomId(String customId) { this.customId = customId; }
+            public String getObjectId() {
+                return objectId;
+            }
+
+            public String getCustomId() {
+                return customId;
+            }            public void setObjectId(String objectId) {
+                this.objectId = objectId;
+            }
+
+
+
+            public void setCustomId(String customId) {
+                this.customId = customId;
+            }
         }
 
         DocumentWithNonEmptyId doc = new DocumentWithNonEmptyId();
@@ -328,17 +263,25 @@ class CollectionManagerEdgeCaseTest {
         // Create a document class that will cause field access issues
         @Document(collection = "field_access_test")
         class ProblematicDocument {
+            // This field might cause access issues in some scenarios
+            private final String immutableField = "constant";
             @ObjectId
             private String id;
 
-            // This field might cause access issues in some scenarios
-            private final String immutableField = "constant";
+            public ProblematicDocument() {
+            }
 
-            public ProblematicDocument() {}
+            public String getId() {
+                return id;
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public String getImmutableField() { return immutableField; }
+            public String getImmutableField() {
+                return immutableField;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+
         }
 
         ProblematicDocument doc = new ProblematicDocument();
@@ -365,14 +308,32 @@ class CollectionManagerEdgeCaseTest {
             @GeneratedValue(generator = IntegerGenerator.class, update = true)
             private Integer zeroUpdateable = 0; // Zero value, updateable
 
-            public DocumentWithZeroValues() {}
+            public DocumentWithZeroValues() {
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public Integer getZeroNotUpdateable() { return zeroNotUpdateable; }
-            public void setZeroNotUpdateable(Integer zeroNotUpdateable) { this.zeroNotUpdateable = zeroNotUpdateable; }
-            public Integer getZeroUpdateable() { return zeroUpdateable; }
-            public void setZeroUpdateable(Integer zeroUpdateable) { this.zeroUpdateable = zeroUpdateable; }
+            public String getId() {
+                return id;
+            }
+
+            public Integer getZeroNotUpdateable() {
+                return zeroNotUpdateable;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+            public void setZeroNotUpdateable(Integer zeroNotUpdateable) {
+                this.zeroNotUpdateable = zeroNotUpdateable;
+            }
+
+            public Integer getZeroUpdateable() {
+                return zeroUpdateable;
+            }
+
+            public void setZeroUpdateable(Integer zeroUpdateable) {
+                this.zeroUpdateable = zeroUpdateable;
+            }
+
+
         }
 
         DocumentWithZeroValues doc = new DocumentWithZeroValues();
@@ -396,12 +357,24 @@ class CollectionManagerEdgeCaseTest {
             @GeneratedValue(generator = DateGenerator.class, update = false)
             private Date dateField = new Date(); // Non-number generated value
 
-            public DocumentWithNonNumberGenerated() {}
+            public DocumentWithNonNumberGenerated() {
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public Date getDateField() { return dateField; }
-            public void setDateField(Date dateField) { this.dateField = dateField; }
+            public String getId() {
+                return id;
+            }
+
+            public Date getDateField() {
+                return dateField;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+            public void setDateField(Date dateField) {
+                this.dateField = dateField;
+            }
+
+
         }
 
         DocumentWithNonNumberGenerated doc = new DocumentWithNonNumberGenerated();
@@ -523,12 +496,24 @@ class CollectionManagerEdgeCaseTest {
             @Id(autoIncrement = false, generator = IntegerGenerator.class)
             private Integer customId;
 
-            public DocumentWithNoAutoIncrement() {}
+            public DocumentWithNoAutoIncrement() {
+            }
 
-            public String getObjectId() { return objectId; }
-            public void setObjectId(String objectId) { this.objectId = objectId; }
-            public Integer getCustomId() { return customId; }
-            public void setCustomId(Integer customId) { this.customId = customId; }
+            public String getObjectId() {
+                return objectId;
+            }
+
+            public Integer getCustomId() {
+                return customId;
+            }            public void setObjectId(String objectId) {
+                this.objectId = objectId;
+            }
+
+
+
+            public void setCustomId(Integer customId) {
+                this.customId = customId;
+            }
         }
 
         DocumentWithNoAutoIncrement doc = new DocumentWithNoAutoIncrement();
@@ -537,26 +522,6 @@ class CollectionManagerEdgeCaseTest {
         assertDoesNotThrow(() -> {
             cm.insert(doc);
         });
-    }
-
-    @Document(collection = "empty_list_test")
-    static class DocumentWithEmptyList {
-        @ObjectId
-        private String id;
-
-        @Internal
-        private List<DocumentWithoutObjectId> internalList;
-
-        private List<String> regularList;
-
-        public DocumentWithEmptyList() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public List<DocumentWithoutObjectId> getInternalList() { return internalList; }
-        public void setInternalList(List<DocumentWithoutObjectId> internalList) { this.internalList = internalList; }
-        public List<String> getRegularList() { return regularList; }
-        public void setRegularList(List<String> regularList) { this.regularList = regularList; }
     }
 
     @Test
@@ -613,14 +578,32 @@ class CollectionManagerEdgeCaseTest {
             @Id(autoIncrement = true, generator = IntegerGenerator.class)
             private Integer idField;
 
-            public ReflectionProblematicDocument() {}
+            public ReflectionProblematicDocument() {
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public Integer getGeneratedField() { return generatedField; }
-            public void setGeneratedField(Integer generatedField) { this.generatedField = generatedField; }
-            public Integer getIdField() { return idField; }
-            public void setIdField(Integer idField) { this.idField = idField; }
+            public String getId() {
+                return id;
+            }
+
+            public Integer getGeneratedField() {
+                return generatedField;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+            public void setGeneratedField(Integer generatedField) {
+                this.generatedField = generatedField;
+            }
+
+            public Integer getIdField() {
+                return idField;
+            }
+
+            public void setIdField(Integer idField) {
+                this.idField = idField;
+            }
+
+
         }
 
         ReflectionProblematicDocument doc = new ReflectionProblematicDocument();
@@ -646,14 +629,32 @@ class CollectionManagerEdgeCaseTest {
             private String name; // null
             private Integer value; // null
 
-            public DocumentWithAllNulls() {}
+            public DocumentWithAllNulls() {
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public String getName() { return name; }
-            public void setName(String name) { this.name = name; }
-            public Integer getValue() { return value; }
-            public void setValue(Integer value) { this.value = value; }
+            public String getId() {
+                return id;
+            }
+
+            public String getName() {
+                return name;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public Integer getValue() {
+                return value;
+            }
+
+            public void setValue(Integer value) {
+                this.value = value;
+            }
+
+
         }
 
         DocumentWithAllNulls doc = new DocumentWithAllNulls();
@@ -696,14 +697,32 @@ class CollectionManagerEdgeCaseTest {
             @Index(value = "", type = "", order = -1, unique = false, sparse = false, background = false, dropDups = false)
             private String minimalParamsField;
 
-            public DocumentWithIndexParams() {}
+            public DocumentWithIndexParams() {
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public String getFullParamsField() { return fullParamsField; }
-            public void setFullParamsField(String fullParamsField) { this.fullParamsField = fullParamsField; }
-            public String getMinimalParamsField() { return minimalParamsField; }
-            public void setMinimalParamsField(String minimalParamsField) { this.minimalParamsField = minimalParamsField; }
+            public String getId() {
+                return id;
+            }
+
+            public String getFullParamsField() {
+                return fullParamsField;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+            public void setFullParamsField(String fullParamsField) {
+                this.fullParamsField = fullParamsField;
+            }
+
+            public String getMinimalParamsField() {
+                return minimalParamsField;
+            }
+
+            public void setMinimalParamsField(String minimalParamsField) {
+                this.minimalParamsField = minimalParamsField;
+            }
+
+
         }
 
         DocumentWithIndexParams doc = new DocumentWithIndexParams();
@@ -717,5 +736,200 @@ class CollectionManagerEdgeCaseTest {
 
         // Verify index creation was called
         verify(mockCollection, atLeastOnce()).createIndex(any(org.bson.Document.class), any());
+    }
+
+    @Document(collection = "multiple_objectid")
+    static class DocumentWithMultipleObjectIds {
+        @ObjectId
+        private String id1;
+
+        @ObjectId
+        private String id2; // Multiple @ObjectId fields to test warning
+
+        public DocumentWithMultipleObjectIds() {
+        }
+
+        public String getId1() {
+            return id1;
+        }
+
+        public void setId1(String id1) {
+            this.id1 = id1;
+        }
+
+        public String getId2() {
+            return id2;
+        }
+
+        public void setId2(String id2) {
+            this.id2 = id2;
+        }
+    }
+
+    @Document(collection = "no_objectid")
+    static class DocumentWithoutObjectId {
+        private String name;
+        private int value;
+
+        public DocumentWithoutObjectId() {
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public void setValue(int value) {
+            this.value = value;
+        }
+    }
+
+    @Document(collection = "generated_edge_cases")
+    static class DocumentWithGeneratedEdgeCases {
+        @ObjectId
+        private String id;
+
+        @GeneratedValue(generator = IntegerGenerator.class, update = false)
+        private Integer nonUpdateableNumber = 5; // Non-zero, non-updateable
+
+        @GeneratedValue(generator = IntegerGenerator.class, update = true)
+        private Integer updateableNumber = 10; // Non-zero, updateable
+
+        @GeneratedValue(generator = IntegerGenerator.class)
+        private Integer nullNumber; // null value
+
+        public DocumentWithGeneratedEdgeCases() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Integer getNonUpdateableNumber() {
+            return nonUpdateableNumber;
+        }
+
+        public void setNonUpdateableNumber(Integer nonUpdateableNumber) {
+            this.nonUpdateableNumber = nonUpdateableNumber;
+        }
+
+        public Integer getUpdateableNumber() {
+            return updateableNumber;
+        }
+
+        public void setUpdateableNumber(Integer updateableNumber) {
+            this.updateableNumber = updateableNumber;
+        }
+
+        public Integer getNullNumber() {
+            return nullNumber;
+        }
+
+        public void setNullNumber(Integer nullNumber) {
+            this.nullNumber = nullNumber;
+        }
+    }
+
+    @Document(collection = "primitives_doc")
+    static class DocumentWithPrimitives {
+        @ObjectId
+        private String id;
+
+        private int primitiveInt;
+        private boolean primitiveBoolean;
+        private double primitiveDouble;
+        private String nullableString;
+
+        public DocumentWithPrimitives() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public int getPrimitiveInt() {
+            return primitiveInt;
+        }
+
+        public void setPrimitiveInt(int primitiveInt) {
+            this.primitiveInt = primitiveInt;
+        }
+
+        public boolean isPrimitiveBoolean() {
+            return primitiveBoolean;
+        }
+
+        public void setPrimitiveBoolean(boolean primitiveBoolean) {
+            this.primitiveBoolean = primitiveBoolean;
+        }
+
+        public double getPrimitiveDouble() {
+            return primitiveDouble;
+        }
+
+        public void setPrimitiveDouble(double primitiveDouble) {
+            this.primitiveDouble = primitiveDouble;
+        }
+
+        public String getNullableString() {
+            return nullableString;
+        }
+
+        public void setNullableString(String nullableString) {
+            this.nullableString = nullableString;
+        }
+    }
+
+    @Document(collection = "empty_list_test")
+    static class DocumentWithEmptyList {
+        @ObjectId
+        private String id;
+
+        @Internal
+        private List<DocumentWithoutObjectId> internalList;
+
+        private List<String> regularList;
+
+        public DocumentWithEmptyList() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public List<DocumentWithoutObjectId> getInternalList() {
+            return internalList;
+        }
+
+        public void setInternalList(List<DocumentWithoutObjectId> internalList) {
+            this.internalList = internalList;
+        }
+
+        public List<String> getRegularList() {
+            return regularList;
+        }
+
+        public void setRegularList(List<String> regularList) {
+            this.regularList = regularList;
+        }
     }
 }

@@ -18,6 +18,7 @@ package com.arquivolivre.mongocom.annotations;
 
 import com.arquivolivre.mongocom.types.Action;
 import com.arquivolivre.mongocom.types.TriggerType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -33,17 +34,17 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Trigger {
 
-  /**
-   * The action that triggers this method.
-   *
-   * @return the trigger action
-   */
-  Action value();
+    /**
+     * The action that triggers this method.
+     *
+     * @return the trigger action
+     */
+    Action value();
 
-  /**
-   * When the trigger should be executed.
-   *
-   * @return the trigger timing
-   */
-  TriggerType when() default TriggerType.BEFORE;
+    /**
+     * When the trigger should be executed.
+     *
+     * @return the trigger timing
+     */
+    TriggerType when() default TriggerType.BEFORE;
 }

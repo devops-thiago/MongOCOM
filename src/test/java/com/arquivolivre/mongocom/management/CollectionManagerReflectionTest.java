@@ -1,39 +1,28 @@
 package com.arquivolivre.mongocom.management;
 
-import com.arquivolivre.mongocom.annotations.Document;
-import com.arquivolivre.mongocom.annotations.ObjectId;
-import com.arquivolivre.mongocom.annotations.GeneratedValue;
-import com.arquivolivre.mongocom.annotations.Id;
-import com.arquivolivre.mongocom.annotations.Reference;
-import com.arquivolivre.mongocom.annotations.Internal;
-import com.arquivolivre.mongocom.annotations.Index;
-import com.arquivolivre.mongocom.annotations.Trigger;
-import com.arquivolivre.mongocom.utils.IntegerGenerator;
-import com.arquivolivre.mongocom.utils.DateGenerator;
+import com.arquivolivre.mongocom.annotations.*;
 import com.arquivolivre.mongocom.types.Action;
 import com.arquivolivre.mongocom.types.TriggerType;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCursor;
+import com.arquivolivre.mongocom.utils.DateGenerator;
+import com.arquivolivre.mongocom.utils.IntegerGenerator;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.*;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.client.result.DeleteResult;
-import com.mongodb.WriteConcern;
-import org.bson.conversions.Bson;
 import org.bson.BsonObjectId;
-import com.mongodb.client.model.ReplaceOptions;
+import org.bson.conversions.Bson;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -61,129 +50,6 @@ class CollectionManagerReflectionTest {
     private InsertOneResult mockInsertResult;
 
     // Complex test document classes for testing reflection and object loading
-
-    @Document(collection = "complex_document")
-    static class ComplexDocument {
-        @ObjectId
-        private String id;
-
-        @GeneratedValue(generator = IntegerGenerator.class)
-        private Integer sequence;
-
-        @GeneratedValue(generator = DateGenerator.class, update = true)
-        private Date timestamp;
-
-        @Id(autoIncrement = true, generator = IntegerGenerator.class)
-        private Integer customId;
-
-        @Reference
-        private ReferencedDoc reference;
-
-        @Internal
-        private List<InternalDoc> internalList;
-
-        @Internal
-        private InternalDoc singleInternal;
-
-        private TestStatus status; // Enum field
-
-        @Index(value = "name_index", unique = true)
-        private String indexedField;
-
-        private Integer primitiveNumber;
-        private String regularField;
-
-        public ComplexDocument() {}
-
-        // Getters and setters
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public Integer getSequence() { return sequence; }
-        public void setSequence(Integer sequence) { this.sequence = sequence; }
-        public Date getTimestamp() { return timestamp; }
-        public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
-        public Integer getCustomId() { return customId; }
-        public void setCustomId(Integer customId) { this.customId = customId; }
-        public ReferencedDoc getReference() { return reference; }
-        public void setReference(ReferencedDoc reference) { this.reference = reference; }
-        public List<InternalDoc> getInternalList() { return internalList; }
-        public void setInternalList(List<InternalDoc> internalList) { this.internalList = internalList; }
-        public InternalDoc getSingleInternal() { return singleInternal; }
-        public void setSingleInternal(InternalDoc singleInternal) { this.singleInternal = singleInternal; }
-        public TestStatus getStatus() { return status; }
-        public void setStatus(TestStatus status) { this.status = status; }
-        public String getIndexedField() { return indexedField; }
-        public void setIndexedField(String indexedField) { this.indexedField = indexedField; }
-        public Integer getPrimitiveNumber() { return primitiveNumber; }
-        public void setPrimitiveNumber(Integer primitiveNumber) { this.primitiveNumber = primitiveNumber; }
-        public String getRegularField() { return regularField; }
-        public void setRegularField(String regularField) { this.regularField = regularField; }
-
-        @Trigger(value = Action.ON_INSERT, when = TriggerType.BEFORE)
-        public void beforeInsertTrigger() {
-            // Trigger method to test method annotation processing
-        }
-
-        @Trigger(value = Action.ON_UPDATE, when = TriggerType.AFTER)
-        public void afterUpdateTrigger() {
-            // Another trigger method
-        }
-    }
-
-    @Document(collection = "referenced_doc")
-    static class ReferencedDoc {
-        @ObjectId
-        private String id;
-        private String name;
-
-        public ReferencedDoc() {}
-        public ReferencedDoc(String name) { this.name = name; }
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-    }
-
-    @Document(collection = "internal_doc")
-    static class InternalDoc {
-        @ObjectId
-        private String id;
-        private String data;
-
-        public InternalDoc() {}
-        public InternalDoc(String data) { this.data = data; }
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
-    @Document(collection = "numbered_document")
-    static class DocumentWithNumbers {
-        @ObjectId
-        private String id;
-
-        @GeneratedValue(generator = IntegerGenerator.class, update = true)
-        private Integer updateableNumber;
-
-        @GeneratedValue(generator = IntegerGenerator.class)
-        private Integer zeroNumber = 0; // Test zero value handling
-
-        public DocumentWithNumbers() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public Integer getUpdateableNumber() { return updateableNumber; }
-        public void setUpdateableNumber(Integer updateableNumber) { this.updateableNumber = updateableNumber; }
-        public Integer getZeroNumber() { return zeroNumber; }
-        public void setZeroNumber(Integer zeroNumber) { this.zeroNumber = zeroNumber; }
-    }
-
-    public enum TestStatus {
-        ACTIVE, INACTIVE, PENDING
-    }
 
     @BeforeEach
     void setUp() {
@@ -383,12 +249,12 @@ class CollectionManagerReflectionTest {
 
         // Mock cursor to return multiple documents
         when(mockMongoCursor.hasNext())
-            .thenReturn(true)   // First document
-            .thenReturn(true)   // Second document
-            .thenReturn(false); // End iteration
+                .thenReturn(true)   // First document
+                .thenReturn(true)   // Second document
+                .thenReturn(false); // End iteration
         when(mockMongoCursor.next())
-            .thenReturn(doc1)
-            .thenReturn(doc2);
+                .thenReturn(doc1)
+                .thenReturn(doc2);
 
         // Test find - will exercise loadObject multiple times
         assertDoesNotThrow(() -> {
@@ -485,8 +351,8 @@ class CollectionManagerReflectionTest {
         refDoc.put("name", "referenced_name");
 
         when(mockFindIterable.first())
-            .thenReturn(refDoc)     // First call for reference lookup
-            .thenReturn(mongoDoc);  // Second call for main document
+                .thenReturn(refDoc)     // First call for reference lookup
+                .thenReturn(mongoDoc);  // Second call for main document
 
         // Test findOne - will exercise loadObject with reference loading
         assertDoesNotThrow(() -> {
@@ -521,22 +387,6 @@ class CollectionManagerReflectionTest {
             ComplexDocument result = cm.findOne(ComplexDocument.class);
             assertNotNull(result);
         });
-    }
-
-    // Document class with non-internal list for testing
-    @Document(collection = "list_doc")
-    static class DocumentWithRegularList {
-        @ObjectId
-        private String id;
-
-        private List<String> regularList; // Not @Internal
-
-        public DocumentWithRegularList() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public List<String> getRegularList() { return regularList; }
-        public void setRegularList(List<String> regularList) { this.regularList = regularList; }
     }
 
     @Test
@@ -749,22 +599,64 @@ class CollectionManagerReflectionTest {
             @Index(value = "named_compound", type = "", order = 1)
             private String namedCompoundField2;
 
-            public ComplexIndexedDocument() {}
+            public ComplexIndexedDocument() {
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public String getSimpleField() { return simpleField; }
-            public void setSimpleField(String simpleField) { this.simpleField = simpleField; }
-            public String getCompoundField1() { return compoundField1; }
-            public void setCompoundField1(String compoundField1) { this.compoundField1 = compoundField1; }
-            public String getCompoundField2() { return compoundField2; }
-            public void setCompoundField2(String compoundField2) { this.compoundField2 = compoundField2; }
-            public String getTextField() { return textField; }
-            public void setTextField(String textField) { this.textField = textField; }
-            public String getNamedCompoundField1() { return namedCompoundField1; }
-            public void setNamedCompoundField1(String namedCompoundField1) { this.namedCompoundField1 = namedCompoundField1; }
-            public String getNamedCompoundField2() { return namedCompoundField2; }
-            public void setNamedCompoundField2(String namedCompoundField2) { this.namedCompoundField2 = namedCompoundField2; }
+            public String getId() {
+                return id;
+            }
+
+            public String getSimpleField() {
+                return simpleField;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+            public void setSimpleField(String simpleField) {
+                this.simpleField = simpleField;
+            }
+
+            public String getCompoundField1() {
+                return compoundField1;
+            }
+
+            public void setCompoundField1(String compoundField1) {
+                this.compoundField1 = compoundField1;
+            }
+
+            public String getCompoundField2() {
+                return compoundField2;
+            }
+
+            public void setCompoundField2(String compoundField2) {
+                this.compoundField2 = compoundField2;
+            }
+
+            public String getTextField() {
+                return textField;
+            }
+
+            public void setTextField(String textField) {
+                this.textField = textField;
+            }
+
+            public String getNamedCompoundField1() {
+                return namedCompoundField1;
+            }
+
+            public void setNamedCompoundField1(String namedCompoundField1) {
+                this.namedCompoundField1 = namedCompoundField1;
+            }
+
+            public String getNamedCompoundField2() {
+                return namedCompoundField2;
+            }
+
+            public void setNamedCompoundField2(String namedCompoundField2) {
+                this.namedCompoundField2 = namedCompoundField2;
+            }
+
+
         }
 
         ComplexIndexedDocument doc = new ComplexIndexedDocument();
@@ -805,14 +697,32 @@ class CollectionManagerReflectionTest {
             @Index(value = "underscore_compound", order = -1)
             private String regularField;
 
-            public UnderscoreIndexedDocument() {}
+            public UnderscoreIndexedDocument() {
+            }
 
-            public String getId() { return id; }
-            public void setId(String id) { this.id = id; }
-            public String get_prefixedField() { return _prefixedField; }
-            public void set_prefixedField(String _prefixedField) { this._prefixedField = _prefixedField; }
-            public String getRegularField() { return regularField; }
-            public void setRegularField(String regularField) { this.regularField = regularField; }
+            public String getId() {
+                return id;
+            }
+
+            public String get_prefixedField() {
+                return _prefixedField;
+            }            public void setId(String id) {
+                this.id = id;
+            }
+
+            public void set_prefixedField(String _prefixedField) {
+                this._prefixedField = _prefixedField;
+            }
+
+            public String getRegularField() {
+                return regularField;
+            }
+
+            public void setRegularField(String regularField) {
+                this.regularField = regularField;
+            }
+
+
         }
 
         UnderscoreIndexedDocument doc = new UnderscoreIndexedDocument();
@@ -825,5 +735,270 @@ class CollectionManagerReflectionTest {
         });
 
         verify(mockCollection, atLeastOnce()).createIndex(any(org.bson.Document.class), any());
+    }
+
+    public enum TestStatus {
+        ACTIVE, INACTIVE, PENDING
+    }
+
+    @Document(collection = "complex_document")
+    static class ComplexDocument {
+        @ObjectId
+        private String id;
+
+        @GeneratedValue(generator = IntegerGenerator.class)
+        private Integer sequence;
+
+        @GeneratedValue(generator = DateGenerator.class, update = true)
+        private Date timestamp;
+
+        @Id(autoIncrement = true, generator = IntegerGenerator.class)
+        private Integer customId;
+
+        @Reference
+        private ReferencedDoc reference;
+
+        @Internal
+        private List<InternalDoc> internalList;
+
+        @Internal
+        private InternalDoc singleInternal;
+
+        private TestStatus status; // Enum field
+
+        @Index(value = "name_index", unique = true)
+        private String indexedField;
+
+        private Integer primitiveNumber;
+        private String regularField;
+
+        public ComplexDocument() {
+        }
+
+        // Getters and setters
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Integer getSequence() {
+            return sequence;
+        }
+
+        public void setSequence(Integer sequence) {
+            this.sequence = sequence;
+        }
+
+        public Date getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(Date timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public Integer getCustomId() {
+            return customId;
+        }
+
+        public void setCustomId(Integer customId) {
+            this.customId = customId;
+        }
+
+        public ReferencedDoc getReference() {
+            return reference;
+        }
+
+        public void setReference(ReferencedDoc reference) {
+            this.reference = reference;
+        }
+
+        public List<InternalDoc> getInternalList() {
+            return internalList;
+        }
+
+        public void setInternalList(List<InternalDoc> internalList) {
+            this.internalList = internalList;
+        }
+
+        public InternalDoc getSingleInternal() {
+            return singleInternal;
+        }
+
+        public void setSingleInternal(InternalDoc singleInternal) {
+            this.singleInternal = singleInternal;
+        }
+
+        public TestStatus getStatus() {
+            return status;
+        }
+
+        public void setStatus(TestStatus status) {
+            this.status = status;
+        }
+
+        public String getIndexedField() {
+            return indexedField;
+        }
+
+        public void setIndexedField(String indexedField) {
+            this.indexedField = indexedField;
+        }
+
+        public Integer getPrimitiveNumber() {
+            return primitiveNumber;
+        }
+
+        public void setPrimitiveNumber(Integer primitiveNumber) {
+            this.primitiveNumber = primitiveNumber;
+        }
+
+        public String getRegularField() {
+            return regularField;
+        }
+
+        public void setRegularField(String regularField) {
+            this.regularField = regularField;
+        }
+
+        @Trigger(value = Action.ON_INSERT, when = TriggerType.BEFORE)
+        public void beforeInsertTrigger() {
+            // Trigger method to test method annotation processing
+        }
+
+        @Trigger(value = Action.ON_UPDATE, when = TriggerType.AFTER)
+        public void afterUpdateTrigger() {
+            // Another trigger method
+        }
+    }
+
+    @Document(collection = "referenced_doc")
+    static class ReferencedDoc {
+        @ObjectId
+        private String id;
+        private String name;
+
+        public ReferencedDoc() {
+        }
+
+        public ReferencedDoc(String name) {
+            this.name = name;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    @Document(collection = "internal_doc")
+    static class InternalDoc {
+        @ObjectId
+        private String id;
+        private String data;
+
+        public InternalDoc() {
+        }
+
+        public InternalDoc(String data) {
+            this.data = data;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+    }
+
+    @Document(collection = "numbered_document")
+    static class DocumentWithNumbers {
+        @ObjectId
+        private String id;
+
+        @GeneratedValue(generator = IntegerGenerator.class, update = true)
+        private Integer updateableNumber;
+
+        @GeneratedValue(generator = IntegerGenerator.class)
+        private Integer zeroNumber = 0; // Test zero value handling
+
+        public DocumentWithNumbers() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Integer getUpdateableNumber() {
+            return updateableNumber;
+        }
+
+        public void setUpdateableNumber(Integer updateableNumber) {
+            this.updateableNumber = updateableNumber;
+        }
+
+        public Integer getZeroNumber() {
+            return zeroNumber;
+        }
+
+        public void setZeroNumber(Integer zeroNumber) {
+            this.zeroNumber = zeroNumber;
+        }
+    }
+
+    // Document class with non-internal list for testing
+    @Document(collection = "list_doc")
+    static class DocumentWithRegularList {
+        @ObjectId
+        private String id;
+
+        private List<String> regularList; // Not @Internal
+
+        public DocumentWithRegularList() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public List<String> getRegularList() {
+            return regularList;
+        }
+
+        public void setRegularList(List<String> regularList) {
+            this.regularList = regularList;
+        }
     }
 }

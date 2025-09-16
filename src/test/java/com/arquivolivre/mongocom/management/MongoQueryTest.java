@@ -3,8 +3,8 @@ package com.arquivolivre.mongocom.management;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -252,8 +252,8 @@ class MongoQueryTest {
     @DisplayName("Should support method chaining")
     void testMethodChaining() {
         MongoQuery result = mongoQuery
-            .add("name", "John")
-            .add("age", 25);
+                .add("name", "John")
+                .add("age", 25);
 
         assertSame(mongoQuery, result);
         assertEquals("John", mongoQuery.getQuery().get("name"));
@@ -267,8 +267,8 @@ class MongoQueryTest {
         MongoQuery subQuery2 = new MongoQuery("role", "admin");
 
         mongoQuery
-            .add("$or", Arrays.asList(subQuery1, subQuery2))
-            .add("department", "IT");
+                .add("$or", Arrays.asList(subQuery1, subQuery2))
+                .add("department", "IT");
 
         mongoQuery.returnOnly(false, "name", "email", "department");
         mongoQuery.orderBy("name", MongoQuery.ORDER_ASC);

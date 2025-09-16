@@ -28,22 +28,22 @@ import org.bson.Document;
 
 public class IntegerGenerator implements Generator {
 
-  @Override
-  public <A> A generateValue(Class parent, MongoDatabase db) {
-    MongoCollection<Document> collection = db.getCollection("values_" + parent.getSimpleName());
-    Document o = collection.find().first();
-    int value = 0;
-    if (o != null) {
-      value = o.getInteger("generatedValue", 0);
-    } else {
-      o = new Document("generatedValue", value);
+    @Override
+    public <A> A generateValue(Class parent, MongoDatabase db) {
+        MongoCollection<Document> collection = db.getCollection("values_" + parent.getSimpleName());
+        Document o = collection.find().first();
+        int value = 0;
+        if (o != null) {
+            value = o.getInteger("generatedValue", 0);
+        } else {
+            o = new Document("generatedValue", value);
+        }
+        o.put("generatedValue", ++value);
+        if (o.getObjectId("_id") != null) {
+            collection.replaceOne(new Document("_id", o.getObjectId("_id")), o);
+        } else {
+            collection.insertOne(o);
+        }
+        return (A) Integer.valueOf(value);
     }
-    o.put("generatedValue", ++value);
-    if (o.getObjectId("_id") != null) {
-      collection.replaceOne(new Document("_id", o.getObjectId("_id")), o);
-    } else {
-      collection.insertOne(o);
-    }
-    return (A) Integer.valueOf(value);
-  }
 }

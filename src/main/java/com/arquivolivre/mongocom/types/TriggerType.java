@@ -24,6 +24,6 @@ package com.arquivolivre.mongocom.types;
  */
 
 public enum TriggerType {
-  BEFORE,
-  AFTER
+    BEFORE,
+    AFTER
 }

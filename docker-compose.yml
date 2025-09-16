@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: mongocom-test
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: mongocom_test
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - mongocom_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  mongocom_network:
+    driver: bridge
+

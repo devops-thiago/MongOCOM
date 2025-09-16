@@ -1,45 +1,27 @@
 package com.arquivolivre.mongocom.management;
 
-import com.arquivolivre.mongocom.annotations.Document;
-import com.arquivolivre.mongocom.annotations.ObjectId;
-import com.arquivolivre.mongocom.annotations.GeneratedValue;
-import com.arquivolivre.mongocom.annotations.Id;
-import com.arquivolivre.mongocom.annotations.Reference;
-import com.arquivolivre.mongocom.annotations.Internal;
-import com.arquivolivre.mongocom.annotations.Index;
-import com.arquivolivre.mongocom.annotations.Trigger;
-import com.arquivolivre.mongocom.utils.IntegerGenerator;
-import com.arquivolivre.mongocom.utils.DateGenerator;
+import com.arquivolivre.mongocom.annotations.*;
 import com.arquivolivre.mongocom.types.Action;
 import com.arquivolivre.mongocom.types.TriggerType;
-import com.arquivolivre.mongocom.types.IndexType;
-import com.arquivolivre.mongocom.exceptions.NoSuchMongoCollectionException;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoIterable;
-import com.mongodb.client.result.InsertOneResult;
-import com.mongodb.client.result.UpdateResult;
-import com.mongodb.client.result.DeleteResult;
+import com.arquivolivre.mongocom.utils.DateGenerator;
+import com.arquivolivre.mongocom.utils.IntegerGenerator;
 import com.mongodb.WriteConcern;
+import com.mongodb.client.*;
 import com.mongodb.client.model.ReplaceOptions;
-import org.bson.conversions.Bson;
+import com.mongodb.client.result.InsertOneResult;
 import org.bson.BsonObjectId;
+import org.bson.conversions.Bson;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.Closeable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -65,182 +47,6 @@ class CollectionManagerTest {
 
     @Mock
     private InsertOneResult mockInsertResult;
-
-    // Test document classes
-    @Document(collection = "test_collection")
-    static class TestDocument {
-        @ObjectId
-        private String id;
-
-        private String name;
-        private int age;
-
-        public TestDocument() {}
-
-        public TestDocument(String name, int age) {
-            this.name = name;
-            this.age = age;
-        }
-
-        // Getters and setters
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public int getAge() { return age; }
-        public void setAge(int age) { this.age = age; }
-    }
-
-    @Document
-    static class DefaultCollectionDocument {
-        @ObjectId
-        private String id;
-        private String data;
-
-        public DefaultCollectionDocument() {}
-    }
-
-    static class NonDocumentClass {
-        private String data;
-        public NonDocumentClass() {}
-    }
-
-    // Test documents with various annotations
-    @Document(collection = "generated_collection")
-    static class DocumentWithGeneratedValue {
-        @ObjectId
-        private String id;
-
-        @GeneratedValue(generator = IntegerGenerator.class)
-        private Integer sequence;
-
-        @GeneratedValue(generator = DateGenerator.class, update = true)
-        private Date timestamp;
-
-        public DocumentWithGeneratedValue() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public Integer getSequence() { return sequence; }
-        public void setSequence(Integer sequence) { this.sequence = sequence; }
-        public Date getTimestamp() { return timestamp; }
-        public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
-    }
-
-    @Document(collection = "id_document")
-    static class DocumentWithIdAnnotation {
-        @ObjectId
-        private String objectId;
-
-        @Id(autoIncrement = true, generator = IntegerGenerator.class)
-        private Integer customId;
-
-        public DocumentWithIdAnnotation() {}
-
-        public String getObjectId() { return objectId; }
-        public void setObjectId(String objectId) { this.objectId = objectId; }
-        public Integer getCustomId() { return customId; }
-        public void setCustomId(Integer customId) { this.customId = customId; }
-    }
-
-    @Document(collection = "referenced_collection")
-    static class ReferencedDocument {
-        @ObjectId
-        private String id;
-        private String refName;
-
-        public ReferencedDocument() {}
-        public ReferencedDocument(String refName) { this.refName = refName; }
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getRefName() { return refName; }
-        public void setRefName(String refName) { this.refName = refName; }
-    }
-
-    @Document(collection = "parent_collection")
-    static class DocumentWithReference {
-        @ObjectId
-        private String id;
-
-        @Reference
-        private ReferencedDocument reference;
-
-        @Internal
-        private List<ReferencedDocument> internalList;
-
-        private TestEnum status;
-
-        public DocumentWithReference() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public ReferencedDocument getReference() { return reference; }
-        public void setReference(ReferencedDocument reference) { this.reference = reference; }
-        public List<ReferencedDocument> getInternalList() { return internalList; }
-        public void setInternalList(List<ReferencedDocument> internalList) { this.internalList = internalList; }
-        public TestEnum getStatus() { return status; }
-        public void setStatus(TestEnum status) { this.status = status; }
-    }
-
-    @Document(collection = "indexed_collection")
-    static class DocumentWithIndexes {
-        @ObjectId
-        private String id;
-
-        @Index(value = "name_index", unique = true, background = true)
-        private String name;
-
-        @Index(type = "text")
-        private String description;
-
-        @Index(value = "compound_index", order = 1)
-        private String field1;
-
-        @Index(value = "compound_index", order = -1)
-        private String field2;
-
-        public DocumentWithIndexes() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-        public String getField1() { return field1; }
-        public void setField1(String field1) { this.field1 = field1; }
-        public String getField2() { return field2; }
-        public void setField2(String field2) { this.field2 = field2; }
-    }
-
-    @Document(collection = "trigger_collection")
-    static class DocumentWithTrigger {
-        @ObjectId
-        private String id;
-        private String data;
-
-        @Trigger(value = Action.ON_INSERT, when = TriggerType.BEFORE)
-        public void beforeInsert() {
-            // Trigger method
-        }
-
-        @Trigger(value = Action.ON_UPDATE, when = TriggerType.AFTER)
-        public void afterUpdate() {
-            // Trigger method
-        }
-
-        public DocumentWithTrigger() {}
-
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        public String getData() { return data; }
-        public void setData(String data) { this.data = data; }
-    }
-
-    public enum TestEnum {
-        ACTIVE, INACTIVE, PENDING
-    }
 
     @BeforeEach
     void setUp() {
@@ -312,7 +118,7 @@ class CollectionManagerTest {
     @DisplayName("Should throw exception for null client")
     void testConstructorWithNullClient() {
         assertThrows(NullPointerException.class, () ->
-            new CollectionManager(null, "testdb"));
+                new CollectionManager(null, "testdb"));
     }
 
     @Test
@@ -575,7 +381,6 @@ class CollectionManagerTest {
         assertFalse(NonDocumentClass.class.isAnnotationPresent(Document.class));
     }
 
-
     @Test
     @DisplayName("Should call count methods")
     void testCountMethods() {
@@ -688,8 +493,6 @@ class CollectionManagerTest {
         // Verify MongoDB interactions
         verify(mockDatabase, atLeastOnce()).runCommand(any(org.bson.Document.class));
     }
-
-    // NEW COMPREHENSIVE TESTS FOR UNCOVERED METHODS
 
     @Test
     @DisplayName("Should test alternative constructors")
@@ -895,6 +698,8 @@ class CollectionManagerTest {
         verify(mockCollection, atLeastOnce()).replaceOne(any(Bson.class), any(org.bson.Document.class), any(ReplaceOptions.class));
     }
 
+    // NEW COMPREHENSIVE TESTS FOR UNCOVERED METHODS
+
     @Test
     @DisplayName("Should handle query with constraints and ordering")
     void testQueryWithConstraintsAndOrdering() {
@@ -931,7 +736,8 @@ class CollectionManagerTest {
 
         // Test count with a class that can't be instantiated (private constructor)
         class PrivateConstructorClass {
-            private PrivateConstructorClass() {}
+            private PrivateConstructorClass() {
+            }
         }
 
         // This should handle the exception gracefully and return 0
@@ -975,6 +781,314 @@ class CollectionManagerTest {
         assertNotNull(status);
         assertTrue(status.contains("connected"), "Status should indicate connection");
         assertTrue(status.contains("db1"), "Status should list databases");
+    }
+
+    public enum TestEnum {
+        ACTIVE, INACTIVE, PENDING
+    }
+
+    // Test document classes
+    @Document(collection = "test_collection")
+    static class TestDocument {
+        @ObjectId
+        private String id;
+
+        private String name;
+        private int age;
+
+        public TestDocument() {
+        }
+
+        public TestDocument(String name, int age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        // Getters and setters
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getAge() {
+            return age;
+        }
+
+        public void setAge(int age) {
+            this.age = age;
+        }
+    }
+
+    @Document
+    static class DefaultCollectionDocument {
+        @ObjectId
+        private String id;
+        private String data;
+
+        public DefaultCollectionDocument() {
+        }
+    }
+
+    static class NonDocumentClass {
+        private String data;
+
+        public NonDocumentClass() {
+        }
+    }
+
+    // Test documents with various annotations
+    @Document(collection = "generated_collection")
+    static class DocumentWithGeneratedValue {
+        @ObjectId
+        private String id;
+
+        @GeneratedValue(generator = IntegerGenerator.class)
+        private Integer sequence;
+
+        @GeneratedValue(generator = DateGenerator.class, update = true)
+        private Date timestamp;
+
+        public DocumentWithGeneratedValue() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Integer getSequence() {
+            return sequence;
+        }
+
+        public void setSequence(Integer sequence) {
+            this.sequence = sequence;
+        }
+
+        public Date getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(Date timestamp) {
+            this.timestamp = timestamp;
+        }
+    }
+
+    @Document(collection = "id_document")
+    static class DocumentWithIdAnnotation {
+        @ObjectId
+        private String objectId;
+
+        @Id(autoIncrement = true, generator = IntegerGenerator.class)
+        private Integer customId;
+
+        public DocumentWithIdAnnotation() {
+        }
+
+        public String getObjectId() {
+            return objectId;
+        }
+
+        public void setObjectId(String objectId) {
+            this.objectId = objectId;
+        }
+
+        public Integer getCustomId() {
+            return customId;
+        }
+
+        public void setCustomId(Integer customId) {
+            this.customId = customId;
+        }
+    }
+
+    @Document(collection = "referenced_collection")
+    static class ReferencedDocument {
+        @ObjectId
+        private String id;
+        private String refName;
+
+        public ReferencedDocument() {
+        }
+
+        public ReferencedDocument(String refName) {
+            this.refName = refName;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getRefName() {
+            return refName;
+        }
+
+        public void setRefName(String refName) {
+            this.refName = refName;
+        }
+    }
+
+    @Document(collection = "parent_collection")
+    static class DocumentWithReference {
+        @ObjectId
+        private String id;
+
+        @Reference
+        private ReferencedDocument reference;
+
+        @Internal
+        private List<ReferencedDocument> internalList;
+
+        private TestEnum status;
+
+        public DocumentWithReference() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public ReferencedDocument getReference() {
+            return reference;
+        }
+
+        public void setReference(ReferencedDocument reference) {
+            this.reference = reference;
+        }
+
+        public List<ReferencedDocument> getInternalList() {
+            return internalList;
+        }
+
+        public void setInternalList(List<ReferencedDocument> internalList) {
+            this.internalList = internalList;
+        }
+
+        public TestEnum getStatus() {
+            return status;
+        }
+
+        public void setStatus(TestEnum status) {
+            this.status = status;
+        }
+    }
+
+    @Document(collection = "indexed_collection")
+    static class DocumentWithIndexes {
+        @ObjectId
+        private String id;
+
+        @Index(value = "name_index", unique = true, background = true)
+        private String name;
+
+        @Index(type = "text")
+        private String description;
+
+        @Index(value = "compound_index", order = 1)
+        private String field1;
+
+        @Index(value = "compound_index", order = -1)
+        private String field2;
+
+        public DocumentWithIndexes() {
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getField1() {
+            return field1;
+        }
+
+        public void setField1(String field1) {
+            this.field1 = field1;
+        }
+
+        public String getField2() {
+            return field2;
+        }
+
+        public void setField2(String field2) {
+            this.field2 = field2;
+        }
+    }
+
+    @Document(collection = "trigger_collection")
+    static class DocumentWithTrigger {
+        @ObjectId
+        private String id;
+        private String data;
+
+        public DocumentWithTrigger() {
+        }
+
+        @Trigger(value = Action.ON_INSERT, when = TriggerType.BEFORE)
+        public void beforeInsert() {
+            // Trigger method
+        }
+
+        @Trigger(value = Action.ON_UPDATE, when = TriggerType.AFTER)
+        public void afterUpdate() {
+            // Trigger method
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
     }
 }
 

@@ -1,34 +1,31 @@
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.MongoException;
 import jakarta.servlet.ServletContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CollectionManagerFactory Extended Tests")
 class CollectionManagerFactoryExtendedTest {
 
-    @Mock
-    private ServletContext mockServletContext;
-
     @TempDir
     Path tempDir;
+    @Mock
+    private ServletContext mockServletContext;
 
     @BeforeEach
     void setUp() {
@@ -77,7 +74,7 @@ class CollectionManagerFactoryExtendedTest {
     void testCreateCollectionManagerWithFullParameters() {
         assertDoesNotThrow(() -> {
             CollectionManager cm = CollectionManagerFactory.createCollectionManager(
-                "localhost", 27017, "testdb", "user", "password");
+                    "localhost", 27017, "testdb", "user", "password");
             // May be null if connection fails, which is expected in test environment
         });
     }

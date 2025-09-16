@@ -1,0 +1,17 @@
+# MongoDB Configuration Template for MongOCOM Framework
+# Copy this file to database.properties and configure your settings
+
+# MongoDB connection using individual properties
+mongocom.host=localhost
+mongocom.port=27017
+mongocom.database=mongocom_test
+
+# Authentication (leave empty if no authentication required)
+mongocom.user=your_username
+mongocom.password=your_password
+
+# Alternative: Use MongoDB URI (recommended for complex configurations)
+# mongocom.uri=mongodb://localhost:27017/mongocom_test
+# mongocom.uri=mongodb://username:password@localhost:27017/mongocom_test
+# mongocom.uri=mongodb://username:password@host1:27017,host2:27017/database?authSource=admin&replicaSet=myReplicaSet
+

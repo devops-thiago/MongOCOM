@@ -1,10 +1,10 @@
 package com.arquivolivre.mongocom.management;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
@@ -39,7 +39,7 @@ class CollectionManagerFactoryTest {
             // We can't actually create a connection without MongoDB running
             // but we can test the method exists and handles parameters
             CollectionManagerFactory.class.getDeclaredMethod(
-                "createCollectionManager", String.class, int.class
+                    "createCollectionManager", String.class, int.class
             );
         });
     }
@@ -49,8 +49,8 @@ class CollectionManagerFactoryTest {
     void testCreateCollectionManagerWithAuth() {
         assertDoesNotThrow(() -> {
             CollectionManagerFactory.class.getDeclaredMethod(
-                "createCollectionManager",
-                String.class, int.class, String.class, String.class, String.class
+                    "createCollectionManager",
+                    String.class, int.class, String.class, String.class, String.class
             );
         });
     }
@@ -60,7 +60,7 @@ class CollectionManagerFactoryTest {
     void testCreateCollectionManagerFromURI() {
         assertDoesNotThrow(() -> {
             CollectionManagerFactory.class.getDeclaredMethod(
-                "createCollectionManagerFromUri", String.class
+                    "createCollectionManagerFromUri", String.class
             );
         });
     }
@@ -78,10 +78,10 @@ class CollectionManagerFactoryTest {
     void testURIValidation() {
         // Test various URI formats that should be handled
         String[] validURIs = {
-            "mongodb://localhost:27017/testdb",
-            "mongodb://user:pass@localhost:27017/testdb",
-            "mongodb://localhost:27017,localhost:27018/testdb",
-            "mongodb+srv://cluster.example.com/testdb"
+                "mongodb://localhost:27017/testdb",
+                "mongodb://user:pass@localhost:27017/testdb",
+                "mongodb://localhost:27017,localhost:27018/testdb",
+                "mongodb+srv://cluster.example.com/testdb"
         };
 
         for (String uri : validURIs) {
@@ -186,7 +186,7 @@ class CollectionManagerFactoryTest {
 
         // Connection string with authentication
         String authConnectionString = String.format("mongodb://%s:%s@%s:%d/%s",
-            user, password, host, port, database);
+                user, password, host, port, database);
         assertEquals("mongodb://admin:secret@localhost:27017/testdb", authConnectionString);
     }
 
@@ -213,10 +213,10 @@ class CollectionManagerFactoryTest {
     void testConfigurationFileLookup() {
         // Test the configuration file lookup logic
         String[] possibleConfigPaths = {
-            "database.properties",
-            "conf/database.properties",
-            ".conf/database.properties",
-            ".config/database.properties"
+                "database.properties",
+                "conf/database.properties",
+                ".conf/database.properties",
+                ".config/database.properties"
         };
 
         for (String path : possibleConfigPaths) {

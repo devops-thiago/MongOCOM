@@ -24,7 +24,7 @@ package com.arquivolivre.mongocom.types;
  */
 
 public enum Action {
-  ON_UPDATE,
-  ON_INSERT,
-  ON_REMOVE
+    ON_UPDATE,
+    ON_INSERT,
+    ON_REMOVE
 }

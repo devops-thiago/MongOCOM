@@ -24,119 +24,119 @@ package com.arquivolivre.mongocom.utils;
 
 public class QueryPrototype {
 
-  /**
-   * Select specific fields to return in query results.
-   *
-   * @param fields the field names to select
-   */
-  public static void select(String... fields) {
-  }
+    /**
+     * Select specific fields to return in query results.
+     *
+     * @param fields the field names to select
+     */
+    public static void select(String... fields) {
+    }
 
-  /**
-   * Specify the collection to query from.
-   *
-   * @param collection the collection class
-   */
-  public static void from(Class<?> collection) {
-  }
+    /**
+     * Specify the collection to query from.
+     *
+     * @param collection the collection class
+     */
+    public static void from(Class<?> collection) {
+    }
 
-  /**
-   * Specify a field to filter on.
-   *
-   * @param field the field name
-   */
-  public static void where(String field) {
-  }
+    /**
+     * Specify a field to filter on.
+     *
+     * @param field the field name
+     */
+    public static void where(String field) {
+    }
 
-  /**
-   * Filter for documents where the field equals the specified value.
-   *
-   * @param value the value to match
-   */
-  public static void equalsTo(Object value) {
-  }
+    /**
+     * Filter for documents where the field equals the specified value.
+     *
+     * @param value the value to match
+     */
+    public static void equalsTo(Object value) {
+    }
 
-  /**
-   * Filter for documents where the field does not equal the specified value.
-   *
-   * @param value the value to not match
-   */
-  public static void notEqualsTo(Object value) {
-  }
+    /**
+     * Filter for documents where the field does not equal the specified value.
+     *
+     * @param value the value to not match
+     */
+    public static void notEqualsTo(Object value) {
+    }
 
-  /**
-   * Filter for documents where the field is greater than the specified value.
-   *
-   * @param value the comparison value
-   */
-  public static void greaterThan(Object value) {
-  }
+    /**
+     * Filter for documents where the field is greater than the specified value.
+     *
+     * @param value the comparison value
+     */
+    public static void greaterThan(Object value) {
+    }
 
-  /**
-   * Filter for documents where the field is less than the specified value.
-   *
-   * @param value the comparison value
-   */
-  public static void lessThan(Object value) {
-  }
+    /**
+     * Filter for documents where the field is less than the specified value.
+     *
+     * @param value the comparison value
+     */
+    public static void lessThan(Object value) {
+    }
 
-  /**
-   * Filter for documents where the field is greater than or equal to the specified value.
-   *
-   * @param value the comparison value
-   */
-  public static void greaterThanOrEqualTo(Object value) {
-  }
+    /**
+     * Filter for documents where the field is greater than or equal to the specified value.
+     *
+     * @param value the comparison value
+     */
+    public static void greaterThanOrEqualTo(Object value) {
+    }
 
-  /**
-   * Filter for documents where the field is less than or equal to the specified value.
-   *
-   * @param value the comparison value
-   */
-  public static void lessThanOrEqualTo(Object value) {
-  }
+    /**
+     * Filter for documents where the field is less than or equal to the specified value.
+     *
+     * @param value the comparison value
+     */
+    public static void lessThanOrEqualTo(Object value) {
+    }
 
-  /**
-   * Add an AND condition with the specified field.
-   *
-   * @param field the field name
-   */
-  public static void and(String field) {
-  }
+    /**
+     * Add an AND condition with the specified field.
+     *
+     * @param field the field name
+     */
+    public static void and(String field) {
+    }
 
-  /**
-   * Add an OR condition with the specified field.
-   *
-   * @param field the field name
-   */
-  public static void or(String field) {
-  }
+    /**
+     * Add an OR condition with the specified field.
+     *
+     * @param field the field name
+     */
+    public static void or(String field) {
+    }
 
-  /**
-   * Filter for documents where the field exists.
-   */
-  public static void exists() {
-  }
+    /**
+     * Filter for documents where the field exists.
+     */
+    public static void exists() {
+    }
 
-  /**
-   * Filter for documents where the field does not exist.
-   */
-  public static void notExists() {
-  }
+    /**
+     * Filter for documents where the field does not exist.
+     */
+    public static void notExists() {
+    }
 
-  /**
-   * Filter for documents where the field value is in the specified array of values.
-   *
-   * @param values the array of values to match
-   */
-  public static void in(Object... values) {
-  }
+    /**
+     * Filter for documents where the field value is in the specified array of values.
+     *
+     * @param values the array of values to match
+     */
+    public static void in(Object... values) {
+    }
 
-  /**
-   * Filter for documents where the field value is not in the specified array of values.
-   *
-   * @param values the array of values to not match
-   */
-  public static void notIn(Object... values) {
-  }
+    /**
+     * Filter for documents where the field value is not in the specified array of values.
+     *
+     * @param values the array of values to not match
+     */
+    public static void notIn(Object... values) {
+    }
 }

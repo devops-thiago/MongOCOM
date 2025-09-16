@@ -31,17 +31,17 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface GeneratedValue {
 
-  /**
-   * The generator class to use for value generation.
-   *
-   * @return the generator class
-   */
-  Class generator();
+    /**
+     * The generator class to use for value generation.
+     *
+     * @return the generator class
+     */
+    Class generator();
 
-  /**
-   * Whether to update the value on document updates.
-   *
-   * @return true if the value should be updated, false otherwise
-   */
-  boolean update() default false;
+    /**
+     * Whether to update the value on document updates.
+     *
+     * @return true if the value should be updated, false otherwise
+     */
+    boolean update() default false;
 }
