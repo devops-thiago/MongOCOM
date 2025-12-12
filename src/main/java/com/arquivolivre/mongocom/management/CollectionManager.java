@@ -301,7 +301,7 @@ public final class CollectionManager implements Closeable {
       String collectionName = reflectCollectionName(document);
       MongoCollection<Document> collection = db.getCollection(collectionName);
       InsertOneResult result = collection.insertOne(doc);
-      if (result.getInsertedId() != null) {
+      if (result != null && result.getInsertedId() != null) {
         _id = result.getInsertedId().asObjectId().getValue().toString();
       } else if (doc.containsKey("_id")) {
         _id = doc.get("_id").toString();
@@ -383,7 +383,7 @@ public final class CollectionManager implements Closeable {
         _id = doc.get("_id").toString();
       } else {
         InsertOneResult result = collection.insertOne(doc);
-        if (result.getInsertedId() != null) {
+        if (result != null && result.getInsertedId() != null) {
           _id = result.getInsertedId().asObjectId().getValue().toString();
         }
       }
@@ -419,8 +419,8 @@ public final class CollectionManager implements Closeable {
       String type = (String) annotation.annotationType().getMethod("type").invoke(annotation);
       boolean unique = (boolean) annotation.annotationType().getMethod("unique").invoke(annotation);
       boolean sparse = (boolean) annotation.annotationType().getMethod("sparse").invoke(annotation);
-      boolean dropDups =
-          (boolean) annotation.annotationType().getMethod("dropDups").invoke(annotation);
+      // Note: dropDups is deprecated in newer MongoDB versions and not supported in driver 5.x
+      // boolean dropDups = (boolean) annotation.annotationType().getMethod("dropDups").invoke(annotation);
       boolean background =
           (boolean) annotation.annotationType().getMethod("background").invoke(annotation);
       int order = (int) annotation.annotationType().getMethod("order").invoke(annotation);
@@ -447,11 +447,11 @@ public final class CollectionManager implements Closeable {
         collection.createIndex(indexKeys, compoundIndexesOpt);
       }
     }
-    Set<String> keys = compoundIndexes.keySet();
-    for (String key : keys) {
+    for (Map.Entry<String, List<String>> entry : compoundIndexes.entrySet()) {
+      String key = entry.getKey();
       Document keysObj = new Document();
       IndexOptions namedOptions = new IndexOptions().background(true).name(key);
-      for (String value : compoundIndexes.get(key)) {
+      for (String value : entry.getValue()) {
         boolean with_ = false;
         if (value.startsWith("_")) {
           value = value.replaceFirst("_", "");
@@ -587,27 +587,7 @@ public final class CollectionManager implements Closeable {
     return fieldsAnnotated.toArray(fields);
   }
 
-  private void invokeAnnotatedMethods(Object obj, Class<? extends Annotation> annotationClass) {
-    Method[] methods = getMethodsByAnnotation(obj, annotationClass);
-    for (Method method : methods) {
-      try {
-        method.invoke(obj);
-      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-        LOG.log(Level.SEVERE, null, ex);
-      }
-    }
-  }
 
-  private Method[] getMethodsByAnnotation(Object obj, Class<? extends Annotation> annotationClass) {
-    Method[] methods = obj.getClass().getDeclaredMethods();
-    List<Method> methodsAnnotated = new ArrayList<>();
-    for (Method method : methods) {
-      if (method.isAnnotationPresent(annotationClass)) {
-        methodsAnnotated.add(method);
-      }
-    }
-    return (Method[]) methodsAnnotated.toArray();
-  }
 
   private String reflectCollectionName(Object document)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException,

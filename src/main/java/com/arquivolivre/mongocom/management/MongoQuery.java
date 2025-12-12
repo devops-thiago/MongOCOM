@@ -114,15 +114,15 @@ public final class MongoQuery {
   }
 
   public Document getQuery() {
-    return query;
+    return query != null ? new Document(query) : null;
   }
 
   public Document getConstraints() {
-    return constraints;
+    return constraints != null ? new Document(constraints) : null;
   }
 
   public Document getOrderBy() {
-    return orderBy;
+    return orderBy != null ? new Document(orderBy) : null;
   }
 
   public int getLimit() {

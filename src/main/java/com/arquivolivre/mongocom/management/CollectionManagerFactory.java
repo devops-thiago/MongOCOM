@@ -159,12 +159,13 @@ public final class CollectionManagerFactory {
    * @return an instance of a <code>CollectionManager</code>.
    */
   public static CollectionManager setup(ServletContext context) {
+    InputStream in = null;
     try {
       File props = getPropertiesFile(context);
       if (props == null) {
         throw new FileNotFoundException("application or database configuration file not found.");
       }
-      InputStream in = new FileInputStream(props);
+      in = new FileInputStream(props);
       Properties properties = new Properties();
       properties.load(in);
       
@@ -221,6 +222,14 @@ public final class CollectionManagerFactory {
       return new CollectionManager(client, dbName);
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, null, ex);
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (IOException ex) {
+          LOG.log(Level.WARNING, "Failed to close input stream", ex);
+        }
+      }
     }
     return null;
   }
@@ -254,6 +263,9 @@ public final class CollectionManagerFactory {
         };
 
     File[] files = dir.listFiles(filter);
+    if (files == null) {
+      throw new FileNotFoundException("Unable to list files in conf directory");
+    }
     for (File file : files) {
       String fileName = file.getName();
       if (fileName.startsWith(FILES[1])) {
