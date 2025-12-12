@@ -97,30 +97,30 @@ public final class CollectionManagerFactory {
     try {
       StringBuilder uriBuilder = new StringBuilder();
       uriBuilder.append("mongodb://");
-      
+
       // Add authentication if provided
       if (!user.equals("")) {
         uriBuilder.append(user).append(":").append(password).append("@");
       }
-      
+
       // Add host
       if ("".equals(host)) {
         uriBuilder.append("localhost");
       } else {
         uriBuilder.append(host);
       }
-      
+
       // Add port if provided
       if (port != 0) {
         uriBuilder.append(":").append(port);
       }
-      
+
       // Add database name
       uriBuilder.append("/");
       if (!dbName.equals("")) {
         uriBuilder.append(dbName);
       }
-      
+
       String uri = uriBuilder.toString();
       LOG.log(Level.INFO, "Connecting to MongoDB with URI: {0}", uri);
       ConnectionString connectionString = new ConnectionString(uri);
@@ -128,7 +128,7 @@ public final class CollectionManagerFactory {
           .applyConnectionString(connectionString)
           .build();
       client = MongoClients.create(settings);
-      
+
       return new CollectionManager(client, dbName);
     } catch (MongoException ex) {
       LOG.log(
@@ -168,7 +168,7 @@ public final class CollectionManagerFactory {
       in = new FileInputStream(props);
       Properties properties = new Properties();
       properties.load(in);
-      
+
       // Check if URI is provided directly
       if (properties.containsKey("mongocom.uri")) {
         String uri = properties.getProperty("mongocom.uri");
@@ -181,7 +181,7 @@ public final class CollectionManagerFactory {
         String dbName = connectionString.getDatabase();
         return new CollectionManager(client, dbName);
       }
-      
+
       // Fall back to individual properties approach for backward compatibility
       StringBuilder builder = new StringBuilder();
       builder.append("mongodb://");

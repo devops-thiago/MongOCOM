@@ -150,19 +150,19 @@ public final class CollectionManager implements Closeable {
       A obj = collectionClass.newInstance();
       String collectionName = reflectCollectionName(obj);
       MongoCollection<Document> collection = db.getCollection(collectionName);
-      
+
       FindIterable<Document> findIterable = collection.find(query.getQuery());
-      
+
       // Apply projection if specified
       if (query.getConstraints() != null) {
         findIterable = findIterable.projection(query.getConstraints());
       }
-      
-      // Apply ordering if specified  
+
+      // Apply ordering if specified
       if (query.getOrderBy() != null) {
         findIterable = findIterable.sort(query.getOrderBy());
       }
-      
+
       // Apply skip and limit
       if (query.getSkip() > 0) {
         findIterable = findIterable.skip(query.getSkip());
@@ -170,7 +170,7 @@ public final class CollectionManager implements Closeable {
       if (query.getLimit() > 0) {
         findIterable = findIterable.limit(query.getLimit());
       }
-      
+
       for (Document document : findIterable) {
         loadObject(obj, document);
         resultSet.add(obj);
@@ -230,12 +230,12 @@ public final class CollectionManager implements Closeable {
       result = collectionClass.newInstance();
       String collectionName = reflectCollectionName(result);
       MongoCollection<Document> collection = db.getCollection(collectionName);
-      
+
       FindIterable<Document> findIterable = collection.find(query.getQuery());
       if (query.getConstraints() != null) {
         findIterable = findIterable.projection(query.getConstraints());
       }
-      
+
       Document doc = findIterable.first();
       if (doc == null) {
         return null;
@@ -271,16 +271,36 @@ public final class CollectionManager implements Closeable {
    */
   public void remove(Object document) {
     try {
-      Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
       MongoCollection<Document> collection = db.getCollection(collectionName);
-      collection.deleteOne(doc);
-    } catch (InstantiationException
-        | NoSuchMethodException
+
+      // Find the _id field to use as filter
+      Field objectIdField = getFieldByAnnotation(document, com.arquivolivre.mongocom.annotations.ObjectId.class, false);
+      if (objectIdField != null) {
+        objectIdField.setAccessible(true);
+        String id = (String) objectIdField.get(document);
+        if (id != null && !id.isEmpty()) {
+          collection.deleteOne(Filters.eq("_id", new ObjectId(id)));
+          return;
+        }
+      }
+
+      // If no ObjectId field, try to find @Id field
+      Field idField = getFieldByAnnotation(document, Id.class, false);
+      if (idField != null) {
+        idField.setAccessible(true);
+        Object idValue = idField.get(document);
+        if (idValue != null) {
+          collection.deleteOne(Filters.eq(idField.getName(), idValue));
+          return;
+        }
+      }
+
+      LOG.log(Level.WARNING, "Cannot remove document: no valid ID field found");
+    } catch (NoSuchMethodException
         | InvocationTargetException
         | IllegalAccessException
-        | SecurityException
-        | IllegalArgumentException ex) {
+        | NoSuchFieldException ex) {
       LOG.log(Level.SEVERE, "An error occured while removing this document: {0}", ex.getMessage());
     }
   }
@@ -306,7 +326,7 @@ public final class CollectionManager implements Closeable {
       } else if (doc.containsKey("_id")) {
         _id = doc.get("_id").toString();
       }
-      
+
       Field field = getFieldByAnnotation(document, com.arquivolivre.mongocom.annotations.ObjectId.class, false);
       if (field != null) {
         field.setAccessible(true);
@@ -342,7 +362,7 @@ public final class CollectionManager implements Closeable {
       Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
       MongoCollection<Document> collection = db.getCollection(collectionName).withWriteConcern(concern);
-      
+
       if (multi) {
         collection.updateMany(query.getQuery(), new Document("$set", doc));
       } else {
@@ -375,10 +395,10 @@ public final class CollectionManager implements Closeable {
       Document doc = loadDocument(document);
       String collectionName = reflectCollectionName(document);
       MongoCollection<Document> collection = db.getCollection(collectionName);
-      
+
       // If document has _id, use replaceOne with upsert, otherwise insertOne
       if (doc.containsKey("_id")) {
-        collection.replaceOne(Filters.eq("_id", doc.get("_id")), doc, 
+        collection.replaceOne(Filters.eq("_id", doc.get("_id")), doc,
             new ReplaceOptions().upsert(true));
         _id = doc.get("_id").toString();
       } else {
@@ -387,7 +407,7 @@ public final class CollectionManager implements Closeable {
           _id = result.getInsertedId().asObjectId().getValue().toString();
         }
       }
-      
+
       indexFields(document);
     } catch (InstantiationException
         | IllegalAccessException
@@ -477,7 +497,7 @@ public final class CollectionManager implements Closeable {
         field.setAccessible(true);
         String fieldName = field.getName();
         Object fieldContent = field.get(document);
-        if (fieldContent == null && !field.isAnnotationPresent(GeneratedValue.class)) {
+        if (fieldContent == null && !field.isAnnotationPresent(GeneratedValue.class) && !field.isAnnotationPresent(Id.class)) {
           continue;
         }
         if (fieldContent instanceof List list1) {
@@ -497,19 +517,34 @@ public final class CollectionManager implements Closeable {
           doc.append(fieldName, new ObjectId(save(fieldContent)));
         } else if (field.isAnnotationPresent(Internal.class)) {
           doc.append(fieldName, loadDocument(fieldContent));
-        } else if (field.isAnnotationPresent(Id.class) && !fieldContent.equals("")) {
-          doc.append(fieldName, reflectId(field));
+        } else if (field.isAnnotationPresent(Id.class)) {
+          Annotation idAnnotation = field.getAnnotation(Id.class);
+          Boolean autoIncrement = (Boolean) idAnnotation.annotationType().getMethod("autoIncrement").invoke(idAnnotation);
+          boolean shouldGenerate = autoIncrement && (fieldContent == null || fieldContent.equals("") ||
+                                   (fieldContent instanceof Number && ((Number)fieldContent).intValue() == 0));
+          if (shouldGenerate) {
+            Object generatedId = reflectId(field);
+            if (generatedId != null) {
+              doc.append(fieldName, generatedId);
+              field.set(document, generatedId);
+            }
+          } else if (fieldContent != null && !fieldContent.equals("")) {
+            doc.append(fieldName, fieldContent);
+          }
         } else if (field.isAnnotationPresent(GeneratedValue.class)) {
           Object value = reflectGeneratedValue(field, fieldContent);
           if (value != null) {
             doc.append(fieldName, value);
+            field.set(document, value);
+          } else if (fieldContent != null) {
+            doc.append(fieldName, fieldContent);
           }
         } else if (!field.isAnnotationPresent(com.arquivolivre.mongocom.annotations.ObjectId.class)) {
           doc.append(fieldName, fieldContent);
         } else if (!fieldContent.equals("")) {
           doc.append("_id", new ObjectId((String) fieldContent));
         }
-      } catch (IllegalArgumentException | IllegalAccessException ex) {
+      } catch (IllegalArgumentException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
         LOG.log(Level.SEVERE, null, ex);
       }
     }
