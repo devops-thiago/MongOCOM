@@ -14,3 +14,6 @@ examples/conf/database.properties
 # OS files
 .DS_Store
 Thumbs.db
+
+# Compiled class files (should never be in source)
+*.class

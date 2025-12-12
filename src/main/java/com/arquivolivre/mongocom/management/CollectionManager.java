@@ -609,7 +609,9 @@ public final class CollectionManager implements Closeable {
     Class generator = (Class) annotation.annotationType().getMethod("generator").invoke(annotation);
     if (autoIncrement) {
       Generator g = (Generator) generator.newInstance();
-      return g.generateValue(field.getDeclaringClass(), db);
+      @SuppressWarnings("unchecked")
+      Class<A> declaringClass = (Class<A>) field.getDeclaringClass();
+      return g.generateValue(declaringClass, db);
     }
     return null;
   }
@@ -622,15 +624,17 @@ public final class CollectionManager implements Closeable {
     Boolean update = (Boolean) annotationType.getMethod("update").invoke(annotation);
     Class generator = (Class) annotationType.getMethod("generator").invoke(annotation);
     Generator g = (Generator) generator.newInstance();
+    @SuppressWarnings("unchecked")
+    Class<A> declaringClass = (Class<A>) field.getDeclaringClass();
     if ((update && (oldValue != null)) || (oldValue == null)) {
-      return g.generateValue(field.getDeclaringClass(), db);
+      return g.generateValue(declaringClass, db);
     } else if (oldValue instanceof Number) {
 
       boolean test = oldValue.equals(oldValue.getClass().cast(0));
       if (test) {
-        return g.generateValue(field.getDeclaringClass(), db);
+        return g.generateValue(declaringClass, db);
       } else if (update) {
-        return g.generateValue(field.getDeclaringClass(), db);
+        return g.generateValue(declaringClass, db);
       }
     }
     return null;

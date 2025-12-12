@@ -20,5 +20,5 @@ import com.mongodb.client.MongoDatabase;
 /** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
 public interface Generator {
 
-  <A extends Object> A generateValue(Class parent, MongoDatabase db);
+  <A> A generateValue(Class<A> parent, MongoDatabase db);
 }
