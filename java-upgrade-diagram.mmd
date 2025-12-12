@@ -1,0 +1,49 @@
+flowchart TD
+    classDef java17 fill:#2a0a18,stroke:#ee5396,stroke-width:2px
+    classDef java21 fill:#081a1c,stroke:#009d9a,stroke-width:2px
+    classDef process fill:#001141,stroke:#4589ff,stroke-width:2px,text-align:left
+    classDef file stroke-width:2px
+
+    start["Java 17 to Java 21 Modernization"] --> analysis["Static Code Analysis<br/>SpotBugs + PMD"]
+    analysis --> issues["Identified Issues<br/>10 Critical/Medium Bugs"]
+
+    issues --> spotbugs["SpotBugs Issues"]
+    spotbugs --> cast["BC_IMPOSSIBLE_DOWNCAST_OF_TOARRAY<br/>Incorrect array cast"]:::java17
+    spotbugs --> nullcheck["NP_NULL_ON_SOME_PATH<br/>Missing null checks"]:::java17
+    spotbugs --> resource["OBL_UNSATISFIED_OBLIGATION<br/>Resource leak"]:::java17
+    spotbugs --> iterator["WMI_WRONG_MAP_ITERATOR<br/>Inefficient iteration"]:::java17
+    spotbugs --> expose["EI_EXPOSE_REP<br/>Internal representation exposure"]:::java17
+
+    cast --> fixCast["<b>Fix Array Cast</b><br/>Use toArray&#40;new Method&#91;0&#93;&#41;<br/>instead of &#40;Method&#91;&#93;&#41; toArray&#40;&#41;"]:::process
+    nullcheck --> fixNull["<b>Add Null Checks</b><br/>Validate InsertOneResult<br/>before accessing"]:::process
+    resource --> fixResource["<b>Close Resources</b><br/>Properly close InputStream<br/>in finally block"]:::process
+    iterator --> fixIterator["<b>Optimize Iteration</b><br/>Use entrySet&#40;&#41; instead<br/>of keySet&#40;&#41;"]:::process
+    expose --> fixExpose["<b>Defensive Copies</b><br/>Return copies in getQuery&#40;&#41;,<br/>getConstraints&#40;&#41;, getOrderBy&#40;&#41;"]:::process
+
+    fixCast --> result1["Type-Safe Array Conversion"]:::java21
+    fixNull --> result2["Null-Safe Operations"]:::java21
+    fixResource --> result3["No Resource Leaks"]:::java21
+    fixIterator --> result4["Efficient Map Iteration"]:::java21
+    fixExpose --> result5["Protected Internal State"]:::java21
+
+    result1 --> verify["Build Verification"]
+    result2 --> verify
+    result3 --> verify
+    result4 --> verify
+    result5 --> verify
+
+    verify --> buildCheck["<b>Maven Build</b><br/>Java 21 + Jakarta EE 11"]:::process
+    buildCheck --> success["✅ Build SUCCESS<br/>All Tests Passed<br/>Java 21 Compatible"]:::java21
+
+    success --> final["Java 21 Migration Complete<br/>Jakarta EE 11<br/>MongoDB 5.5.1"]
+
+    subgraph tasks["Tasks Summary"]
+        task0["<b>Task 0: Fix SpotBugs Issues</b><br/>• Cost: 0.23 coins<br/>• Tokens: 212,222<br/>• Time: 112.4s<br/><br/>Fixed 10 critical bugs:<br/>- CollectionManager.java &#40;7 fixes&#41;<br/>- CollectionManagerFactory.java &#40;2 fixes&#41;<br/>- MongoQuery.java &#40;1 fix&#41;"]:::process
+        task1["<b>Task 1: Build Verification</b><br/>• Cost: 0.13 coins<br/>• Tokens: 101,974<br/>• Time: 64.4s<br/><br/>Verified Java 21 compatibility:<br/>- ✅ Clean compile<br/>- ✅ Jakarta EE 11 migration<br/>- ✅ All tests passed"]:::process
+    end
+
+    subgraph legend["Legend"]
+        java17Example["Java 17 Issue"]:::java17
+        processExample["Modernization Step"]:::process
+        java21Example["Java 21 Solution"]:::java21
+    end
