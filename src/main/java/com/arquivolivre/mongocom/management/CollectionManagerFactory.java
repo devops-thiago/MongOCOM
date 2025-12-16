@@ -15,24 +15,25 @@
  */
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
-import com.mongodb.ConnectionString;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import jakarta.servlet.ServletContext;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jakarta.servlet.ServletContext;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>
+ */
 public final class CollectionManagerFactory {
 
   private static MongoClient client;
@@ -76,18 +77,14 @@ public final class CollectionManagerFactory {
   public static CollectionManager createCollectionManagerFromURI(String uri) {
     try {
       ConnectionString connectionString = new ConnectionString(uri);
-      MongoClientSettings settings = MongoClientSettings.builder()
-          .applyConnectionString(connectionString)
-          .build();
+      MongoClientSettings settings =
+          MongoClientSettings.builder().applyConnectionString(connectionString).build();
       client = MongoClients.create(settings);
       String dbName = connectionString.getDatabase();
       LOG.log(Level.INFO, "Connected to MongoDB using URI: {0}", uri);
       return new CollectionManager(client, dbName);
     } catch (MongoException ex) {
-      LOG.log(
-          Level.SEVERE,
-          "Unable to connect to MongoDB using URI: " + uri + ", error: ",
-          ex);
+      LOG.log(Level.SEVERE, "Unable to connect to MongoDB using URI: " + uri + ", error: ", ex);
     }
     return null;
   }
@@ -97,38 +94,37 @@ public final class CollectionManagerFactory {
     try {
       StringBuilder uriBuilder = new StringBuilder();
       uriBuilder.append("mongodb://");
-      
+
       // Add authentication if provided
       if (!user.equals("")) {
         uriBuilder.append(user).append(":").append(password).append("@");
       }
-      
+
       // Add host
       if ("".equals(host)) {
         uriBuilder.append("localhost");
       } else {
         uriBuilder.append(host);
       }
-      
+
       // Add port if provided
       if (port != 0) {
         uriBuilder.append(":").append(port);
       }
-      
+
       // Add database name
       uriBuilder.append("/");
       if (!dbName.equals("")) {
         uriBuilder.append(dbName);
       }
-      
+
       String uri = uriBuilder.toString();
       LOG.log(Level.INFO, "Connecting to MongoDB with URI: {0}", uri);
       ConnectionString connectionString = new ConnectionString(uri);
-      MongoClientSettings settings = MongoClientSettings.builder()
-          .applyConnectionString(connectionString)
-          .build();
+      MongoClientSettings settings =
+          MongoClientSettings.builder().applyConnectionString(connectionString).build();
       client = MongoClients.create(settings);
-      
+
       return new CollectionManager(client, dbName);
     } catch (MongoException ex) {
       LOG.log(
@@ -164,61 +160,66 @@ public final class CollectionManagerFactory {
       if (props == null) {
         throw new FileNotFoundException("application or database configuration file not found.");
       }
-      InputStream in = new FileInputStream(props);
-      Properties properties = new Properties();
-      properties.load(in);
-      
-      // Check if URI is provided directly
-      if (properties.containsKey("mongocom.uri")) {
-        String uri = properties.getProperty("mongocom.uri");
-        LOG.log(Level.INFO, "Using provided MongoDB URI");
-        ConnectionString connectionString = new ConnectionString(uri);
-        MongoClientSettings settings = MongoClientSettings.builder()
-            .applyConnectionString(connectionString)
-            .build();
+      try (InputStream in = new FileInputStream(props)) {
+        Properties properties = new Properties();
+        properties.load(in);
+
+        // Check if URI is provided directly
+        if (properties.containsKey("mongocom.uri")) {
+          String uri = properties.getProperty("mongocom.uri");
+          LOG.log(Level.INFO, "Using provided MongoDB URI");
+          ConnectionString connectionString = new ConnectionString(uri);
+          MongoClientSettings settings =
+              MongoClientSettings.builder().applyConnectionString(connectionString).build();
+          client = MongoClients.create(settings);
+          String dbName = connectionString.getDatabase();
+          return new CollectionManager(client, dbName);
+        }
+
+        // Fall back to individual properties approach for backward compatibility
+        StringBuilder builder = new StringBuilder();
+        builder.append("mongodb://");
+        String user, password, host, port, dbName;
+        user =
+            properties.containsKey("mongocom.user") ? properties.getProperty("mongocom.user") : "";
+        password =
+            properties.containsKey("mongocom.password")
+                ? properties.getProperty("mongocom.password")
+                : "";
+        host =
+            properties.containsKey("mongocom.host") ? properties.getProperty("mongocom.host") : "";
+        port =
+            properties.containsKey("mongocom.port") ? properties.getProperty("mongocom.port") : "";
+        dbName =
+            properties.containsKey("mongocom.database")
+                ? properties.getProperty("mongocom.database")
+                : "";
+        if (!user.equals("")) {
+          builder.append(user).append(":").append(password).append("@");
+        }
+        if (host.equals("")) {
+          builder.append("localhost");
+        } else {
+          builder.append(host);
+        }
+        if (!port.equals("")) {
+          builder.append(":");
+          builder.append(port);
+        }
+        builder.append("/");
+        if (!dbName.equals("")) {
+          builder.append(dbName);
+        }
+        LOG.log(
+            Level.INFO,
+            "Constructed MongoDB URI from individual properties: {0}",
+            builder.toString());
+        ConnectionString connectionString = new ConnectionString(builder.toString());
+        MongoClientSettings settings =
+            MongoClientSettings.builder().applyConnectionString(connectionString).build();
         client = MongoClients.create(settings);
-        String dbName = connectionString.getDatabase();
         return new CollectionManager(client, dbName);
       }
-      
-      // Fall back to individual properties approach for backward compatibility
-      StringBuilder builder = new StringBuilder();
-      builder.append("mongodb://");
-      String user, password, host, port, dbName;
-      user = properties.containsKey("mongocom.user") ? properties.getProperty("mongocom.user") : "";
-      password =
-          properties.containsKey("mongocom.password")
-              ? properties.getProperty("mongocom.password")
-              : "";
-      host = properties.containsKey("mongocom.host") ? properties.getProperty("mongocom.host") : "";
-      port = properties.containsKey("mongocom.port") ? properties.getProperty("mongocom.port") : "";
-      dbName =
-          properties.containsKey("mongocom.database")
-              ? properties.getProperty("mongocom.database")
-              : "";
-      if (!user.equals("")) {
-        builder.append(user).append(":").append(password).append("@");
-      }
-      if (host.equals("")) {
-        builder.append("localhost");
-      } else {
-        builder.append(host);
-      }
-      if (!port.equals("")) {
-        builder.append(":");
-        builder.append(port);
-      }
-      builder.append("/");
-      if (!dbName.equals("")) {
-        builder.append(dbName);
-      }
-      LOG.log(Level.INFO, "Constructed MongoDB URI from individual properties: {0}", builder.toString());
-      ConnectionString connectionString = new ConnectionString(builder.toString());
-      MongoClientSettings settings = MongoClientSettings.builder()
-          .applyConnectionString(connectionString)
-          .build();
-      client = MongoClients.create(settings);
-      return new CollectionManager(client, dbName);
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, null, ex);
     }
@@ -254,6 +255,9 @@ public final class CollectionManagerFactory {
         };
 
     File[] files = dir.listFiles(filter);
+    if (files == null) {
+      throw new FileNotFoundException("Unable to list files in conf directory.");
+    }
     for (File file : files) {
       String fileName = file.getName();
       if (fileName.startsWith(FILES[1])) {

@@ -15,16 +15,14 @@
  */
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
+ */
 public final class MongoQuery {
 
   private Document query;
@@ -114,15 +112,15 @@ public final class MongoQuery {
   }
 
   public Document getQuery() {
-    return query;
+    return query != null ? new Document(query) : new Document();
   }
 
   public Document getConstraints() {
-    return constraints;
+    return constraints != null ? new Document(constraints) : null;
   }
 
   public Document getOrderBy() {
-    return orderBy;
+    return orderBy != null ? new Document(orderBy) : null;
   }
 
   public int getLimit() {
