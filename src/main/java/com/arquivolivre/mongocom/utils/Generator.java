@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
+ * Copyright 2014 Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br&gt;.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.utils;
 
 import com.mongodb.client.MongoDatabase;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * Generator interface for automatic value generation.
+ *
+ * @author Thiago da Silva Gonzaga &lt;thiagosg@sjrp.unesp.br>
+ */
 public interface Generator {
 
+  /**
+   * Generate a value for the specified parent class and database.
+   *
+   * @param <A> the type of value to generate
+   * @param parent the parent class requesting the generated value
+   * @param db the MongoDB database
+   * @return the generated value
+   */
   <A extends Object> A generateValue(Class parent, MongoDatabase db);
 }
