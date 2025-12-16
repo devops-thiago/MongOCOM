@@ -480,10 +480,10 @@ public final class CollectionManager implements Closeable {
         if (fieldContent == null && !field.isAnnotationPresent(GeneratedValue.class)) {
           continue;
         }
-        if (fieldContent instanceof List) {
+        if (fieldContent instanceof List list1) {
           List<Object> list = new ArrayList<>();
           boolean isInternal = field.isAnnotationPresent(Internal.class);
-          for (Object item : (List) fieldContent) {
+          for (Object item : list1) {
             if (isInternal) {
               list.add(loadDocument(item));
             } else {
@@ -524,7 +524,7 @@ public final class CollectionManager implements Closeable {
       field.setAccessible(true);
       String fieldName = field.getName();
       Object fieldContent = document.get(fieldName);
-      if (fieldContent instanceof List) {
+      if (fieldContent instanceof List list1) {
         Class<?> fieldArgClass = null;
         ParameterizedType genericFieldType = (ParameterizedType) field.getGenericType();
         Type[] fieldArgTypes = genericFieldType.getActualTypeArguments();
@@ -533,7 +533,7 @@ public final class CollectionManager implements Closeable {
         }
         List<Object> list = new ArrayList<>();
         boolean isInternal = field.isAnnotationPresent(Internal.class);
-        for (Object item : (List) fieldContent) {
+        for (Object item : list1) {
           if (isInternal) {
             Object o = fieldArgClass.newInstance();
             loadObject(o, (Document) item);

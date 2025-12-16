@@ -52,14 +52,12 @@ public final class MongoQuery {
    * @return the same object instance
    */
   public MongoQuery add(String field, Object value) {
-    if (value instanceof MongoQuery) {
-      MongoQuery q = (MongoQuery) value;
+    if (value instanceof MongoQuery q) {
       query.append(field, q.getQuery());
-    } else if (value instanceof List) {
+    } else if (value instanceof List list) {
       ArrayList<Object> lists = new ArrayList<>();
-      for (Object item : (List) value) {
-        if (item instanceof MongoQuery) {
-          MongoQuery q = (MongoQuery) item;
+      for (Object item : list) {
+        if (item instanceof MongoQuery q) {
           lists.add(q.getQuery());
           continue;
         }
