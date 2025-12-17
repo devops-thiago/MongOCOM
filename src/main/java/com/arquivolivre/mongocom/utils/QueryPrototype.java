@@ -15,7 +15,9 @@
  */
 package com.arquivolivre.mongocom.utils;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>
+ */
 public class QueryPrototype {
 
   public static void select(String... fields) {}

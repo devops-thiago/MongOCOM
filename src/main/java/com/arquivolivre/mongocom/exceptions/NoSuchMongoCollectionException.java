@@ -6,7 +6,9 @@
 
 package com.arquivolivre.mongocom.exceptions;
 
-/** @author thiago */
+/**
+ * @author thiago
+ */
 public class NoSuchMongoCollectionException extends Exception {
 
   public NoSuchMongoCollectionException(String message) {
