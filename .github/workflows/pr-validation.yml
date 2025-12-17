@@ -31,30 +31,23 @@ jobs:
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
     
-    - name: Run tests
-      run: mvn clean test
+    - name: Run tests with coverage
+      run: mvn clean test jacoco:report
     
-    - name: Generate test coverage report
-      run: mvn jacoco:report
-    
-    - name: Run checkstyle
+    - name: Run Checkstyle
       run: mvn checkstyle:check
-      continue-on-error: true
     
     - name: Run PMD
       run: mvn pmd:check
-      continue-on-error: true
     
     - name: Run SpotBugs
       run: mvn spotbugs:check
-      continue-on-error: true
     
     - name: Check code formatting with Spotless
       run: mvn spotless:check
-      continue-on-error: true
     
     - name: Build package
-      run: mvn clean package -DskipTests
+      run: mvn package -DskipTests
     
     - name: Cache SonarCloud packages
       uses: actions/cache@v3
