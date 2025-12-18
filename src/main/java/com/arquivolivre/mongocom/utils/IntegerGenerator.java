@@ -28,8 +28,9 @@ import org.bson.Document;
 public class IntegerGenerator implements Generator {
 
   @Override
-  public Integer generateValue(Class parent, MongoDatabase db) {
-    MongoCollection<Document> collection = db.getCollection("values_" + parent.getSimpleName());
+  public Integer generateValue(final Class parent, final MongoDatabase db) {
+    final MongoCollection<Document> collection =
+        db.getCollection("values_" + parent.getSimpleName());
     Document o = collection.find().first();
     int value = 0;
     if (o != null) {

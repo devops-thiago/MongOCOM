@@ -27,7 +27,7 @@ import java.util.Date;
 public class DateGenerator implements Generator {
 
   @Override
-  public Date generateValue(Class parent, MongoDatabase db) {
+  public Date generateValue(final Class parent, final MongoDatabase db) {
     return new Date();
   }
 }

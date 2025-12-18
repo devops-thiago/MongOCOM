@@ -53,21 +53,25 @@ public final class CollectionManagerFactory {
     return createBaseCollectionManager("", 0, "", "", "");
   }
 
-  public static CollectionManager createCollectionManager(String host) {
+  public static CollectionManager createCollectionManager(final String host) {
     return createBaseCollectionManager(host, 0, "", "", "");
   }
 
-  public static CollectionManager createCollectionManager(String host, int port) {
+  public static CollectionManager createCollectionManager(final String host, final int port) {
     return createBaseCollectionManager(host, port, "", "", "");
   }
 
   public static CollectionManager createCollectionManager(
-      String dbName, String user, String password) {
+      final String dbName, final String user, final String password) {
     return createBaseCollectionManager("", 0, dbName, user, password);
   }
 
   public static CollectionManager createCollectionManager(
-      String host, int port, String dbName, String user, String password) {
+      final String host,
+      final int port,
+      final String dbName,
+      final String user,
+      final String password) {
     return createBaseCollectionManager(host, port, dbName, user, password);
   }
 
@@ -77,13 +81,13 @@ public final class CollectionManagerFactory {
    * @param uri MongoDB connection URI (e.g., "mongodb://user:password@host:port/database")
    * @return an instance of a <code>CollectionManager</code>.
    */
-  public static CollectionManager createCollectionManagerFromUri(String uri) {
+  public static CollectionManager createCollectionManagerFromUri(final String uri) {
     try {
-      ConnectionString connectionString = new ConnectionString(uri);
-      MongoClientSettings settings =
+      final ConnectionString connectionString = new ConnectionString(uri);
+      final MongoClientSettings settings =
           MongoClientSettings.builder().applyConnectionString(connectionString).build();
       client = MongoClients.create(settings);
-      String dbName = connectionString.getDatabase();
+      final String dbName = connectionString.getDatabase();
       LOG.log(Level.INFO, "Connected to MongoDB using URI: {0}", uri);
       return new CollectionManager(client, dbName);
     } catch (MongoException ex) {
@@ -93,14 +97,18 @@ public final class CollectionManagerFactory {
   }
 
   private static CollectionManager createBaseCollectionManager(
-      String host, int port, String dbName, String user, String password) {
+      final String host,
+      final int port,
+      final String dbName,
+      final String user,
+      final String password) {
     try {
-      StringBuilder uriBuilder = new StringBuilder();
+      final StringBuilder uriBuilder = new StringBuilder();
       uriBuilder.append("mongodb://");
 
       // Add authentication if provided
-      if (!user.equals("")) {
-        uriBuilder.append(user).append(":").append(password).append("@");
+      if (!"".equals(user)) {
+        uriBuilder.append(user).append(':').append(password).append('@');
       }
 
       // Add host
@@ -112,19 +120,19 @@ public final class CollectionManagerFactory {
 
       // Add port if provided
       if (port != 0) {
-        uriBuilder.append(":").append(port);
+        uriBuilder.append(':').append(port);
       }
 
       // Add database name
-      uriBuilder.append("/");
-      if (!dbName.equals("")) {
+      uriBuilder.append('/');
+      if (!"".equals(dbName)) {
         uriBuilder.append(dbName);
       }
 
-      String uri = uriBuilder.toString();
+      final String uri = uriBuilder.toString();
       LOG.log(Level.INFO, "Connecting to MongoDB with URI: {0}", uri);
-      ConnectionString connectionString = new ConnectionString(uri);
-      MongoClientSettings settings =
+      final ConnectionString connectionString = new ConnectionString(uri);
+      final MongoClientSettings settings =
           MongoClientSettings.builder().applyConnectionString(connectionString).build();
       client = MongoClients.create(settings);
 
@@ -158,31 +166,31 @@ public final class CollectionManagerFactory {
    * @param context <code>ServletContext</code> of a web application.
    * @return an instance of a <code>CollectionManager</code>.
    */
-  public static CollectionManager setup(ServletContext context) {
+  public static CollectionManager setup(final ServletContext context) {
     try {
-      File props = getPropertiesFile(context);
+      final File props = getPropertiesFile(context);
       if (props == null) {
         throw new FileNotFoundException("application or database configuration file not found.");
       }
-      Properties properties = new Properties();
+      final Properties properties = new Properties();
       try (InputStream in = new FileInputStream(props)) {
         properties.load(in);
       }
 
       // Check if URI is provided directly
       if (properties.containsKey("mongocom.uri")) {
-        String uri = properties.getProperty("mongocom.uri");
+        final String uri = properties.getProperty("mongocom.uri");
         LOG.log(Level.INFO, "Using provided MongoDB URI");
-        ConnectionString connectionString = new ConnectionString(uri);
-        MongoClientSettings settings =
+        final ConnectionString connectionString = new ConnectionString(uri);
+        final MongoClientSettings settings =
             MongoClientSettings.builder().applyConnectionString(connectionString).build();
         client = MongoClients.create(settings);
-        String dbName = connectionString.getDatabase();
+        final String dbName = connectionString.getDatabase();
         return new CollectionManager(client, dbName);
       }
 
       // Fall back to individual properties approach for backward compatibility
-      StringBuilder builder = new StringBuilder();
+      final StringBuilder builder = new StringBuilder();
       builder.append("mongodb://");
       final String user =
           properties.containsKey("mongocom.user") ? properties.getProperty("mongocom.user") : "";
@@ -198,28 +206,28 @@ public final class CollectionManagerFactory {
           properties.containsKey("mongocom.database")
               ? properties.getProperty("mongocom.database")
               : "";
-      if (!user.equals("")) {
-        builder.append(user).append(":").append(password).append("@");
+      if (!"".equals(user)) {
+        builder.append(user).append(':').append(password).append('@');
       }
-      if (host.equals("")) {
+      if ("".equals(host)) {
         builder.append("localhost");
       } else {
         builder.append(host);
       }
-      if (!port.equals("")) {
-        builder.append(":");
+      if (!"".equals(port)) {
+        builder.append(':');
         builder.append(port);
       }
-      builder.append("/");
-      if (!dbName.equals("")) {
+      builder.append('/');
+      if (!"".equals(dbName)) {
         builder.append(dbName);
       }
       LOG.log(
           Level.INFO,
           "Constructed MongoDB URI from individual properties: {0}",
           builder.toString());
-      ConnectionString connectionString = new ConnectionString(builder.toString());
-      MongoClientSettings settings =
+      final ConnectionString connectionString = new ConnectionString(builder.toString());
+      final MongoClientSettings settings =
           MongoClientSettings.builder().applyConnectionString(connectionString).build();
       client = MongoClients.create(settings);
       return new CollectionManager(client, dbName);
@@ -229,26 +237,26 @@ public final class CollectionManagerFactory {
     return null;
   }
 
-  private static File getPropertiesFile(ServletContext context) throws FileNotFoundException {
+  private static File getPropertiesFile(final ServletContext context) throws FileNotFoundException {
     String contextPath;
     if (context != null) {
       contextPath = context.getRealPath("WEB-INF");
     } else {
       contextPath = System.getProperty("user.dir");
     }
-    File dir = new File(contextPath + "/conf");
+    final File dir = new File(contextPath + "/conf");
     LOG.log(Level.INFO, dir.getAbsolutePath());
     File result = null;
     if (!dir.isDirectory()) {
       throw new FileNotFoundException("The \"conf/\" folder doesn't exist.");
     }
 
-    FileFilter filter =
+    final FileFilter filter =
         new FileFilter() {
           @Override
-          public boolean accept(File pathname) {
-            String fileName = pathname.getName();
-            for (String extention : EXTENTIONS) {
+          public boolean accept(final File pathname) {
+            final String fileName = pathname.getName();
+            for (final String extention : EXTENTIONS) {
               if (fileName.endsWith(extention)) {
                 return true;
               }
@@ -257,12 +265,12 @@ public final class CollectionManagerFactory {
           }
         };
 
-    File[] files = dir.listFiles(filter);
+    final File[] files = dir.listFiles(filter);
     if (files == null) {
       return result;
     }
-    for (File file : files) {
-      String fileName = file.getName();
+    for (final File file : files) {
+      final String fileName = file.getName();
       if (fileName.startsWith(FILES[1])) {
         return file;
       } else if (fileName.startsWith(FILES[0])) {

@@ -60,9 +60,9 @@ public final class CollectionManager implements Closeable {
   private static final Logger LOG = Logger.getLogger(CollectionManager.class.getName());
 
   // TODO: a better way to manage db connection
-  protected CollectionManager(MongoClient client, String dataBase) {
+  protected CollectionManager(final MongoClient client, final String dataBase) {
     this.client = client;
-    if (dataBase != null && !dataBase.equals("")) {
+    if (dataBase != null && !"".equals(dataBase)) {
       this.db = client.getDatabase(dataBase);
     } else {
       // Get the first available database - need to handle differently in new driver
@@ -70,13 +70,14 @@ public final class CollectionManager implements Closeable {
     }
   }
 
-  protected CollectionManager(MongoClient client, String dbName, String user, String password) {
+  protected CollectionManager(
+      final MongoClient client, final String dbName, final String user, final String password) {
     this(client, dbName);
     // Note: Authentication should be handled during MongoClient creation in newer drivers
     // The authenticate method is deprecated and removed in newer driver versions
   }
 
-  protected CollectionManager(MongoClient client) {
+  protected CollectionManager(final MongoClient client) {
     this.client = client;
   }
 
@@ -85,7 +86,7 @@ public final class CollectionManager implements Closeable {
    *
    * @param dbName Database name
    */
-  public void use(String dbName) {
+  public void use(final String dbName) {
     db = client.getDatabase(dbName);
   }
 
@@ -96,7 +97,7 @@ public final class CollectionManager implements Closeable {
    * @param collectionClass the class representing the collection
    * @return the total of documents
    */
-  public <A extends Object> long count(Class<A> collectionClass) {
+  public <A extends Object> long count(final Class<A> collectionClass) {
     return count(collectionClass, new MongoQuery());
   }
 
@@ -108,12 +109,12 @@ public final class CollectionManager implements Closeable {
    * @param query the query to filter documents
    * @return the total of documents
    */
-  public <A extends Object> long count(Class<A> collectionClass, MongoQuery query) {
+  public <A extends Object> long count(final Class<A> collectionClass, final MongoQuery query) {
     long ret = 0L;
     try {
-      A result = collectionClass.newInstance();
-      String collectionName = reflectCollectionName(result);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
+      final A result = collectionClass.newInstance();
+      final String collectionName = reflectCollectionName(result);
+      final MongoCollection<Document> collection = db.getCollection(collectionName);
       ret = collection.countDocuments(query.getQuery());
     } catch (InstantiationException
         | IllegalAccessException
@@ -133,7 +134,7 @@ public final class CollectionManager implements Closeable {
    * @param collectionClass the class representing the collection
    * @return a list of documents
    */
-  public <A extends Object> List<A> find(Class<A> collectionClass) {
+  public <A extends Object> List<A> find(final Class<A> collectionClass) {
     return find(collectionClass, new MongoQuery());
   }
 
@@ -145,12 +146,12 @@ public final class CollectionManager implements Closeable {
    * @param query the query to filter documents
    * @return a list of documents
    */
-  public <A extends Object> List<A> find(Class<A> collectionClass, MongoQuery query) {
-    List<A> resultSet = new ArrayList<>();
+  public <A extends Object> List<A> find(final Class<A> collectionClass, final MongoQuery query) {
+    final List<A> resultSet = new ArrayList<>();
     try {
       A obj = collectionClass.newInstance();
-      String collectionName = reflectCollectionName(obj);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
+      final String collectionName = reflectCollectionName(obj);
+      final MongoCollection<Document> collection = db.getCollection(collectionName);
 
       FindIterable<Document> findIterable = collection.find(query.getQuery());
 
@@ -195,7 +196,7 @@ public final class CollectionManager implements Closeable {
    * @param collectionClass the class representing the collection
    * @return a document
    */
-  public <A extends Object> A findOne(Class<A> collectionClass) {
+  public <A extends Object> A findOne(final Class<A> collectionClass) {
     A result = null;
     try {
       result = collectionClass.newInstance();
@@ -225,7 +226,7 @@ public final class CollectionManager implements Closeable {
    * @param query the query to filter documents
    * @return a document
    */
-  public <A extends Object> A findOne(Class<A> collectionClass, MongoQuery query) {
+  public <A extends Object> A findOne(final Class<A> collectionClass, final MongoQuery query) {
     A result = null;
     try {
       result = collectionClass.newInstance();
@@ -261,7 +262,7 @@ public final class CollectionManager implements Closeable {
    * @param id the document ID
    * @return a document
    */
-  public <A extends Object> A findById(Class<A> collectionClass, String id) {
+  public <A extends Object> A findById(final Class<A> collectionClass, final String id) {
     return findOne(collectionClass, new MongoQuery("_id", id));
   }
 
@@ -270,11 +271,11 @@ public final class CollectionManager implements Closeable {
    *
    * @param document to be removed.
    */
-  public void remove(Object document) {
+  public void remove(final Object document) {
     try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
+      final Document doc = loadDocument(document);
+      final String collectionName = reflectCollectionName(document);
+      final MongoCollection<Document> collection = db.getCollection(collectionName);
       collection.deleteOne(doc);
     } catch (InstantiationException
         | NoSuchMethodException
@@ -292,23 +293,23 @@ public final class CollectionManager implements Closeable {
    * @param document the document to insert
    * @return the <code>_id</code> of the inserted document, <code>null</code> if fails
    */
-  public String insert(Object document) {
+  public String insert(final Object document) {
     String id = null;
     if (document == null) {
       return id;
     }
     try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      InsertOneResult result = collection.insertOne(doc);
+      final Document doc = loadDocument(document);
+      final String collectionName = reflectCollectionName(document);
+      final MongoCollection<Document> collection = db.getCollection(collectionName);
+      final InsertOneResult result = collection.insertOne(doc);
       if (result.getInsertedId() != null && result.getInsertedId().isObjectId()) {
         id = result.getInsertedId().asObjectId().getValue().toString();
       } else if (doc.containsKey("_id") && doc.get("_id") != null) {
         id = doc.get("_id").toString();
       }
 
-      Field field =
+      final Field field =
           getFieldByAnnotation(
               document, com.arquivolivre.mongocom.annotations.ObjectId.class, false);
       if (field != null) {
@@ -331,7 +332,7 @@ public final class CollectionManager implements Closeable {
     return id;
   }
 
-  public void update(MongoQuery query, Object document) {
+  public void update(final MongoQuery query, final Object document) {
     update(query, document, false, false);
   }
 
@@ -343,7 +344,8 @@ public final class CollectionManager implements Closeable {
    * @param upsert whether to insert if not found
    * @param multi whether to update multiple documents
    */
-  public void update(MongoQuery query, Object document, boolean upsert, boolean multi) {
+  public void update(
+      final MongoQuery query, final Object document, final boolean upsert, final boolean multi) {
     update(query, document, upsert, multi, WriteConcern.ACKNOWLEDGED);
   }
 
@@ -357,11 +359,15 @@ public final class CollectionManager implements Closeable {
    * @param concern the write concern to use
    */
   public void update(
-      MongoQuery query, Object document, boolean upsert, boolean multi, WriteConcern concern) {
+      final MongoQuery query,
+      final Object document,
+      final boolean upsert,
+      final boolean multi,
+      final WriteConcern concern) {
     try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection =
+      final Document doc = loadDocument(document);
+      final String collectionName = reflectCollectionName(document);
+      final MongoCollection<Document> collection =
           db.getCollection(collectionName).withWriteConcern(concern);
 
       if (multi) {
@@ -379,7 +385,7 @@ public final class CollectionManager implements Closeable {
     }
   }
 
-  public void updateMulti(MongoQuery query, Object document) {
+  public void updateMulti(final MongoQuery query, final Object document) {
     update(query, document, false, true);
   }
 
@@ -389,7 +395,7 @@ public final class CollectionManager implements Closeable {
    * @param document the document to save
    * @return the document ID
    */
-  public String save(Object document) {
+  public String save(final Object document) {
     // TODO: a better way to throw/treat exceptions
     /*if (!document.getClass().isAnnotationPresent(Document.class)) {
     throw new NoSuchMongoCollectionException(document.getClass() + " is not a valid Document.");
@@ -399,9 +405,9 @@ public final class CollectionManager implements Closeable {
       return id;
     }
     try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
+      final Document doc = loadDocument(document);
+      final String collectionName = reflectCollectionName(document);
+      final MongoCollection<Document> collection = db.getCollection(collectionName);
 
       // If document has _id, use replaceOne with upsert, otherwise insertOne
       if (doc.containsKey("_id")) {
@@ -430,20 +436,20 @@ public final class CollectionManager implements Closeable {
     return id;
   }
 
-  private void indexFields(Object document)
+  private void indexFields(final Object document)
       throws NoSuchMethodException,
           IllegalAccessException,
           IllegalArgumentException,
           InvocationTargetException {
-    String collectionName = reflectCollectionName(document);
-    Field[] fields = getFieldsByAnnotation(document, Index.class);
-    Map<String, List<String>> compoundIndexes = new TreeMap<>();
-    IndexOptions compoundIndexesOpt = new IndexOptions().background(true);
-    MongoCollection<Document> collection = db.getCollection(collectionName);
-    for (Field field : fields) {
-      Annotation annotation = field.getAnnotation(Index.class);
-      IndexOptions options = new IndexOptions();
-      Document indexKeys = new Document();
+    final String collectionName = reflectCollectionName(document);
+    final Field[] fields = getFieldsByAnnotation(document, Index.class);
+    final Map<String, List<String>> compoundIndexes = new TreeMap<>();
+    final IndexOptions compoundIndexesOpt = new IndexOptions().background(true);
+    final MongoCollection<Document> collection = db.getCollection(collectionName);
+    for (final Field field : fields) {
+      final Annotation annotation = field.getAnnotation(Index.class);
+      final IndexOptions options = new IndexOptions();
+      final Document indexKeys = new Document();
       final String indexName =
           (String) annotation.annotationType().getMethod("value").invoke(annotation);
       final String type = (String) annotation.annotationType().getMethod("type").invoke(annotation);
@@ -451,43 +457,43 @@ public final class CollectionManager implements Closeable {
           (boolean) annotation.annotationType().getMethod("unique").invoke(annotation);
       final boolean sparse =
           (boolean) annotation.annotationType().getMethod("sparse").invoke(annotation);
-      boolean background =
+      final boolean background =
           (boolean) annotation.annotationType().getMethod("background").invoke(annotation);
-      int order = (int) annotation.annotationType().getMethod("order").invoke(annotation);
-      if (!indexName.equals("")) {
+      final int order = (int) annotation.annotationType().getMethod("order").invoke(annotation);
+      if (!"".equals(indexName)) {
         options.name(indexName);
       }
       options.background(background);
       options.unique(unique);
       options.sparse(sparse);
       // Note: dropDups is deprecated in newer MongoDB versions and not supported in driver 5.x
-      String fieldName = field.getName();
-      if (indexName.equals("") && type.equals("")) {
+      final String fieldName = field.getName();
+      if ("".equals(indexName) && "".equals(type)) {
         indexKeys.append(fieldName, order);
         collection.createIndex(indexKeys, options);
-      } else if (!indexName.equals("") && type.equals("")) {
+      } else if (!"".equals(indexName) && "".equals(type)) {
         List<String> result = compoundIndexes.get(indexName);
         if (result == null) {
           result = new ArrayList<>();
           compoundIndexes.put(indexName, result);
         }
-        result.add(fieldName + "_" + order);
-      } else if (!type.equals("")) {
+        result.add(fieldName + '_' + order);
+      } else if (!"".equals(type)) {
         indexKeys.append(fieldName, type);
         collection.createIndex(indexKeys, compoundIndexesOpt);
       }
     }
-    for (Map.Entry<String, List<String>> entry : compoundIndexes.entrySet()) {
-      String key = entry.getKey();
-      Document keysObj = new Document();
-      IndexOptions namedOptions = new IndexOptions().background(true).name(key);
+    for (final Map.Entry<String, List<String>> entry : compoundIndexes.entrySet()) {
+      final String key = entry.getKey();
+      final Document keysObj = new Document();
+      final IndexOptions namedOptions = new IndexOptions().background(true).name(key);
       for (String value : entry.getValue()) {
         boolean withUnderscore = false;
         if (value.startsWith("_")) {
           value = value.replaceFirst("_", "");
           withUnderscore = true;
         }
-        String[] opt = value.split("_");
+        final String[] opt = value.split("_");
         if (withUnderscore) {
           opt[0] = "_" + opt[0];
         }
@@ -497,25 +503,25 @@ public final class CollectionManager implements Closeable {
     }
   }
 
-  private Document loadDocument(Object document)
+  private Document loadDocument(final Object document)
       throws SecurityException,
           InstantiationException,
           InvocationTargetException,
           NoSuchMethodException {
-    Field[] fields = document.getClass().getDeclaredFields();
-    Document doc = new Document();
-    for (Field field : fields) {
+    final Field[] fields = document.getClass().getDeclaredFields();
+    final Document doc = new Document();
+    for (final Field field : fields) {
       try {
         field.setAccessible(true);
-        String fieldName = field.getName();
-        Object fieldContent = field.get(document);
+        final String fieldName = field.getName();
+        final Object fieldContent = field.get(document);
         if (fieldContent == null && !field.isAnnotationPresent(GeneratedValue.class)) {
           continue;
         }
         if (fieldContent instanceof List) {
-          List<Object> list = new ArrayList<>();
-          boolean isInternal = field.isAnnotationPresent(Internal.class);
-          for (Object item : (List) fieldContent) {
+          final List<Object> list = new ArrayList<>();
+          final boolean isInternal = field.isAnnotationPresent(Internal.class);
+          for (final Object item : (List) fieldContent) {
             if (isInternal) {
               list.add(loadDocument(item));
             } else {
@@ -529,17 +535,17 @@ public final class CollectionManager implements Closeable {
           doc.append(fieldName, new ObjectId(save(fieldContent)));
         } else if (field.isAnnotationPresent(Internal.class)) {
           doc.append(fieldName, loadDocument(fieldContent));
-        } else if (field.isAnnotationPresent(Id.class) && !fieldContent.equals("")) {
+        } else if (field.isAnnotationPresent(Id.class) && !"".equals(fieldContent)) {
           doc.append(fieldName, reflectId(field));
         } else if (field.isAnnotationPresent(GeneratedValue.class)) {
-          Object value = reflectGeneratedValue(field, fieldContent);
+          final Object value = reflectGeneratedValue(field, fieldContent);
           if (value != null) {
             doc.append(fieldName, value);
           }
         } else if (!field.isAnnotationPresent(
             com.arquivolivre.mongocom.annotations.ObjectId.class)) {
           doc.append(fieldName, fieldContent);
-        } else if (!fieldContent.equals("")) {
+        } else if (!"".equals(fieldContent)) {
           doc.append("_id", new ObjectId((String) fieldContent));
         }
       } catch (IllegalArgumentException | IllegalAccessException ex) {
@@ -549,28 +555,28 @@ public final class CollectionManager implements Closeable {
     return doc;
   }
 
-  private <A extends Object> void loadObject(A object, Document document)
+  private <A extends Object> void loadObject(final A object, final Document document)
       throws IllegalAccessException,
           IllegalArgumentException,
           SecurityException,
           InstantiationException {
-    Field[] fields = object.getClass().getDeclaredFields();
-    for (Field field : fields) {
+    final Field[] fields = object.getClass().getDeclaredFields();
+    for (final Field field : fields) {
       field.setAccessible(true);
-      String fieldName = field.getName();
-      Object fieldContent = document.get(fieldName);
+      final String fieldName = field.getName();
+      final Object fieldContent = document.get(fieldName);
       if (fieldContent instanceof List) {
         Class<?> fieldArgClass = null;
-        ParameterizedType genericFieldType = (ParameterizedType) field.getGenericType();
-        Type[] fieldArgTypes = genericFieldType.getActualTypeArguments();
-        for (Type fieldArgType : fieldArgTypes) {
+        final ParameterizedType genericFieldType = (ParameterizedType) field.getGenericType();
+        final Type[] fieldArgTypes = genericFieldType.getActualTypeArguments();
+        for (final Type fieldArgType : fieldArgTypes) {
           fieldArgClass = (Class<?>) fieldArgType;
         }
-        List<Object> list = new ArrayList<>();
-        boolean isInternal = field.isAnnotationPresent(Internal.class);
-        for (Object item : (List) fieldContent) {
+        final List<Object> list = new ArrayList<>();
+        final boolean isInternal = field.isAnnotationPresent(Internal.class);
+        for (final Object item : (List) fieldContent) {
           if (isInternal) {
-            Object o = fieldArgClass.newInstance();
+            final Object o = fieldArgClass.newInstance();
             loadObject(o, (Document) item);
             list.add(o);
           } else {
@@ -593,9 +599,11 @@ public final class CollectionManager implements Closeable {
   }
 
   private Field getFieldByAnnotation(
-      Object obj, Class<? extends Annotation> annotationClass, boolean annotationRequired)
+      final Object obj,
+      final Class<? extends Annotation> annotationClass,
+      final boolean annotationRequired)
       throws NoSuchFieldException {
-    Field[] fields = getFieldsByAnnotation(obj, annotationClass);
+    final Field[] fields = getFieldsByAnnotation(obj, annotationClass);
     if ((fields.length == 0) && annotationRequired) {
       throw new NoSuchFieldException("@" + annotationClass.getSimpleName() + " field not found.");
     } else if (fields.length > 0) {
@@ -610,10 +618,11 @@ public final class CollectionManager implements Closeable {
     return null;
   }
 
-  private Field[] getFieldsByAnnotation(Object obj, Class<? extends Annotation> annotationClass) {
+  private Field[] getFieldsByAnnotation(
+      final Object obj, final Class<? extends Annotation> annotationClass) {
     Field[] fields = obj.getClass().getDeclaredFields();
-    List<Field> fieldsAnnotated = new ArrayList<>();
-    for (Field field : fields) {
+    final List<Field> fieldsAnnotated = new ArrayList<>();
+    for (final Field field : fields) {
       if (field.isAnnotationPresent(annotationClass)) {
         fieldsAnnotated.add(field);
       }
@@ -622,9 +631,10 @@ public final class CollectionManager implements Closeable {
     return fieldsAnnotated.toArray(fields);
   }
 
-  private void invokeAnnotatedMethods(Object obj, Class<? extends Annotation> annotationClass) {
-    Method[] methods = getMethodsByAnnotation(obj, annotationClass);
-    for (Method method : methods) {
+  private void invokeAnnotatedMethods(
+      final Object obj, final Class<? extends Annotation> annotationClass) {
+    final Method[] methods = getMethodsByAnnotation(obj, annotationClass);
+    for (final Method method : methods) {
       try {
         method.invoke(obj);
       } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
@@ -633,10 +643,11 @@ public final class CollectionManager implements Closeable {
     }
   }
 
-  private Method[] getMethodsByAnnotation(Object obj, Class<? extends Annotation> annotationClass) {
-    Method[] methods = obj.getClass().getDeclaredMethods();
-    List<Method> methodsAnnotated = new ArrayList<>();
-    for (Method method : methods) {
+  private Method[] getMethodsByAnnotation(
+      final Object obj, final Class<? extends Annotation> annotationClass) {
+    final Method[] methods = obj.getClass().getDeclaredMethods();
+    final List<Method> methodsAnnotated = new ArrayList<>();
+    for (final Method method : methods) {
       if (method.isAnnotationPresent(annotationClass)) {
         methodsAnnotated.add(method);
       }
@@ -644,54 +655,55 @@ public final class CollectionManager implements Closeable {
     return methodsAnnotated.toArray(new Method[0]);
   }
 
-  private String reflectCollectionName(Object document)
+  private String reflectCollectionName(final Object document)
       throws NoSuchMethodException,
           InvocationTargetException,
           IllegalAccessException,
           SecurityException,
           IllegalArgumentException {
-    Annotation annotation =
+    final Annotation annotation =
         document.getClass().getAnnotation(com.arquivolivre.mongocom.annotations.Document.class);
     String coll = (String) annotation.annotationType().getMethod("collection").invoke(annotation);
-    if (coll.equals("")) {
+    if ("".equals(coll)) {
       coll = document.getClass().getSimpleName();
     }
     return coll;
   }
 
-  private <A extends Object> A reflectId(Field field)
+  private <A extends Object> A reflectId(final Field field)
       throws NoSuchMethodException,
           IllegalAccessException,
           IllegalArgumentException,
           InvocationTargetException,
           InstantiationException {
-    Annotation annotation = field.getAnnotation(Id.class);
-    Boolean autoIncrement =
+    final Annotation annotation = field.getAnnotation(Id.class);
+    final Boolean autoIncrement =
         (Boolean) annotation.annotationType().getMethod("autoIncrement").invoke(annotation);
-    Class generator = (Class) annotation.annotationType().getMethod("generator").invoke(annotation);
+    final Class generator =
+        (Class) annotation.annotationType().getMethod("generator").invoke(annotation);
     if (autoIncrement) {
-      Generator g = (Generator) generator.newInstance();
+      final Generator g = (Generator) generator.newInstance();
       return g.generateValue(field.getDeclaringClass(), db);
     }
     return null;
   }
 
-  private <A extends Object> A reflectGeneratedValue(Field field, Object oldValue)
+  private <A extends Object> A reflectGeneratedValue(final Field field, final Object oldValue)
       throws NoSuchMethodException,
           IllegalAccessException,
           IllegalArgumentException,
           InvocationTargetException,
           InstantiationException {
-    Annotation annotation = field.getAnnotation(GeneratedValue.class);
-    Class<? extends Annotation> annotationType = annotation.annotationType();
-    Boolean update = (Boolean) annotationType.getMethod("update").invoke(annotation);
-    Class generator = (Class) annotationType.getMethod("generator").invoke(annotation);
-    Generator g = (Generator) generator.newInstance();
+    final Annotation annotation = field.getAnnotation(GeneratedValue.class);
+    final Class<? extends Annotation> annotationType = annotation.annotationType();
+    final Boolean update = (Boolean) annotationType.getMethod("update").invoke(annotation);
+    final Class generator = (Class) annotationType.getMethod("generator").invoke(annotation);
+    final Generator g = (Generator) generator.newInstance();
     if ((update && (oldValue != null)) || (oldValue == null)) {
       return g.generateValue(field.getDeclaringClass(), db);
     } else if (oldValue instanceof Number) {
 
-      boolean test = oldValue.equals(oldValue.getClass().cast(0));
+      final boolean test = oldValue.equals(oldValue.getClass().cast(0));
       if (test) {
         return g.generateValue(field.getDeclaringClass(), db);
       } else if (update) {
@@ -709,11 +721,11 @@ public final class CollectionManager implements Closeable {
   public String getStatus() {
     try {
       // Run a ping command to check connectivity
-      Document ping = new Document("ping", 1);
-      Document result = db.runCommand(ping);
+      final Document ping = new Document("ping", 1);
+      final Document result = db.runCommand(ping);
       // Get database names as additional info
-      List<String> dbNames = new ArrayList<>();
-      for (String name : client.listDatabaseNames()) {
+      final List<String> dbNames = new ArrayList<>();
+      for (final String name : client.listDatabaseNames()) {
         dbNames.add(name);
       }
       return "MongoDB client connected. Ping result: "
