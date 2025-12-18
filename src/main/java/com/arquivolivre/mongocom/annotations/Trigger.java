@@ -32,7 +32,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Trigger {
 
+  /** The action that triggers this method. */
   Action value();
 
+  /** When the trigger should execute (before or after the action). */
   TriggerType when() default TriggerType.BEFORE;
 }

@@ -30,7 +30,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface GeneratedValue {
 
+  /** Generator class for creating values. */
   Class generator();
 
+  /** Whether to update the value on document updates. */
   boolean update() default false;
 }

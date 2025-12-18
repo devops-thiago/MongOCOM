@@ -132,7 +132,8 @@ public final class CollectionManagerFactory {
     } catch (MongoException ex) {
       LOG.log(
           Level.SEVERE,
-          "Unable to connect to a mongoDB instance, maybe it is not running or you do not have the right permission: ",
+          "Unable to connect to a mongoDB instance, "
+              + "maybe it is not running or you do not have the right permission: ",
           ex);
     }
     return null;

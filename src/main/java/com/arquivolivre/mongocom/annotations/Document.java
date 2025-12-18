@@ -30,5 +30,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Document {
 
+  /** The MongoDB collection name. If empty, uses the class name. */
   String collection() default "";
 }

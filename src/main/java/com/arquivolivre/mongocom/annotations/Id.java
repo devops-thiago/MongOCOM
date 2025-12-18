@@ -31,7 +31,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Id {
 
+  /** Whether to auto-increment the ID value. */
   boolean autoIncrement() default true;
 
+  /** Generator class for creating ID values. */
   Class generator() default IntegerGenerator.class;
 }

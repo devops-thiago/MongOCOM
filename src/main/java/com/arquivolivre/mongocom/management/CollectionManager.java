@@ -48,7 +48,10 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 /**
- * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>.
+ * This class is responsible for managing the connection to the MongoDB database and performing CRUD
+ * operations on the collections.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
  */
 public final class CollectionManager implements Closeable {
 
@@ -89,9 +92,9 @@ public final class CollectionManager implements Closeable {
   /**
    * The number of documents in the specified collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @return the total of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @return the total of documents
    */
   public <A extends Object> long count(Class<A> collectionClass) {
     return count(collectionClass, new MongoQuery());
@@ -100,13 +103,13 @@ public final class CollectionManager implements Closeable {
   /**
    * The number of documents that match the specified query.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
-   * @return the total of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param query the query to filter documents
+   * @return the total of documents
    */
   public <A extends Object> long count(Class<A> collectionClass, MongoQuery query) {
-    long ret = 0l;
+    long ret = 0L;
     try {
       A result = collectionClass.newInstance();
       String collectionName = reflectCollectionName(result);
@@ -126,9 +129,9 @@ public final class CollectionManager implements Closeable {
   /**
    * Find all documents in the specified collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @return a list of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @return a list of documents
    */
   public <A extends Object> List<A> find(Class<A> collectionClass) {
     return find(collectionClass, new MongoQuery());
@@ -137,10 +140,10 @@ public final class CollectionManager implements Closeable {
   /**
    * Find all documents that match the specified query in the given collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
-   * @return a list of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param query the query to filter documents
+   * @return a list of documents
    */
   public <A extends Object> List<A> find(Class<A> collectionClass, MongoQuery query) {
     List<A> resultSet = new ArrayList<>();
@@ -188,9 +191,9 @@ public final class CollectionManager implements Closeable {
   /**
    * Find a single document of the specified collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @return a document.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @return a document
    */
   public <A extends Object> A findOne(Class<A> collectionClass) {
     A result = null;
@@ -217,10 +220,10 @@ public final class CollectionManager implements Closeable {
   /**
    * Find a single document that matches the specified query in the given collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
-   * @return a document.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param query the query to filter documents
+   * @return a document
    */
   public <A extends Object> A findOne(Class<A> collectionClass, MongoQuery query) {
     A result = null;
@@ -253,10 +256,10 @@ public final class CollectionManager implements Closeable {
   /**
    * Find a single document that matches the specified id in the given collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param id
-   * @return a document.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param id the document ID
+   * @return a document
    */
   public <A extends Object> A findById(Class<A> collectionClass, String id) {
     return findOne(collectionClass, new MongoQuery("_id", id));
@@ -284,10 +287,10 @@ public final class CollectionManager implements Closeable {
   }
 
   /**
-   * Insert the document in a collection
+   * Insert the document in a collection.
    *
-   * @param document
-   * @return the <code>_id</code> of the inserted document, <code>null</code> if fails.
+   * @param document the document to insert
+   * @return the <code>_id</code> of the inserted document, <code>null</code> if fails
    */
   public String insert(Object document) {
     String id = null;
@@ -332,10 +335,27 @@ public final class CollectionManager implements Closeable {
     update(query, document, false, false);
   }
 
+  /**
+   * Update documents matching the query.
+   *
+   * @param query the query to match documents
+   * @param document the document with update values
+   * @param upsert whether to insert if not found
+   * @param multi whether to update multiple documents
+   */
   public void update(MongoQuery query, Object document, boolean upsert, boolean multi) {
     update(query, document, upsert, multi, WriteConcern.ACKNOWLEDGED);
   }
 
+  /**
+   * Update documents matching the query with write concern.
+   *
+   * @param query the query to match documents
+   * @param document the document with update values
+   * @param upsert whether to insert if not found
+   * @param multi whether to update multiple documents
+   * @param concern the write concern to use
+   */
   public void update(
       MongoQuery query, Object document, boolean upsert, boolean multi, WriteConcern concern) {
     try {
@@ -363,6 +383,12 @@ public final class CollectionManager implements Closeable {
     update(query, document, false, true);
   }
 
+  /**
+   * Save a document (insert or update).
+   *
+   * @param document the document to save
+   * @return the document ID
+   */
   public String save(Object document) {
     // TODO: a better way to throw/treat exceptions
     /*if (!document.getClass().isAnnotationPresent(Document.class)) {
@@ -675,6 +701,11 @@ public final class CollectionManager implements Closeable {
     return null;
   }
 
+  /**
+   * Get the database connection status.
+   *
+   * @return status message
+   */
   public String getStatus() {
     try {
       // Run a ping command to check connectivity
