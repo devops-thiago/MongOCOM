@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.utils;
 
 import com.mongodb.client.MongoDatabase;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * Interface for value generators used in auto-generated fields.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 public interface Generator {
 
   <A extends Object> A generateValue(Class parent, MongoDatabase db);

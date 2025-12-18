@@ -16,7 +16,11 @@
 
 package com.arquivolivre.mongocom.types;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * Enum representing database trigger actions.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 public enum Action {
   ON_UPDATE,
   ON_INSERT,

@@ -6,10 +6,16 @@
 
 package com.arquivolivre.mongocom.exceptions;
 
-/** @author thiago */
+/**
+ * Exception thrown when a MongoDB collection is not found.
+ *
+ * @author thiago
+ */
 public class NoSuchMongoCollectionException extends Exception {
 
-  public NoSuchMongoCollectionException(String message) {
+  private static final long serialVersionUID = 1L;
+
+  public NoSuchMongoCollectionException(final String message) {
     super(message);
   }
 }

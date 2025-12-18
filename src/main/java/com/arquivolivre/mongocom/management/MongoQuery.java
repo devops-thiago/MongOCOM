@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.management;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Sorts;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * Query builder for MongoDB operations.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 public final class MongoQuery {
 
   private Document query;
@@ -45,10 +46,10 @@ public final class MongoQuery {
   }
 
   /**
-   * Set a criteria to the query
+   * Set a criteria to the query.
    *
    * @param field field name
-   * @param value
+   * @param value the value to match
    * @return the same object instance
    */
   public MongoQuery add(String field, Object value) {
@@ -75,7 +76,7 @@ public final class MongoQuery {
   }
 
   /**
-   * Limit the fields returned in a document result set
+   * Limit the fields returned in a document result set.
    *
    * @param returnId return the _id field in the result set if true
    * @param fields field names to be returned in the result set
@@ -116,15 +117,15 @@ public final class MongoQuery {
   }
 
   public Document getQuery() {
-    return query;
+    return query != null ? new Document(query) : null;
   }
 
   public Document getConstraints() {
-    return constraints;
+    return constraints != null ? new Document(constraints) : null;
   }
 
   public Document getOrderBy() {
-    return orderBy;
+    return orderBy != null ? new Document(orderBy) : null;
   }
 
   public int getLimit() {
