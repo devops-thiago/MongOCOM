@@ -115,7 +115,7 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
 
     - name: Run SpotBugs
-      run: mvn spotbugs:check
+      run: mvn compile spotbugs:check
 
     - name: Upload SpotBugs report
       uses: actions/upload-artifact@v4
