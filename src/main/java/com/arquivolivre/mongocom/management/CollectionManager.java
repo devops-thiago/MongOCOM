@@ -303,8 +303,14 @@ public final class CollectionManager implements Closeable {
       final String collectionName = reflectCollectionName(document);
       final MongoCollection<Document> collection = db.getCollection(collectionName);
       final InsertOneResult result = collection.insertOne(doc);
-      if (result.getInsertedId() != null && result.getInsertedId().isObjectId()) {
-        id = result.getInsertedId().asObjectId().getValue().toString();
+      if (result.getInsertedId() != null) {
+        final org.bson.BsonValue insertedId = result.getInsertedId();
+        if (insertedId != null && insertedId.isObjectId()) {
+          final org.bson.types.ObjectId objectId = insertedId.asObjectId().getValue();
+          if (objectId != null) {
+            id = objectId.toString();
+          }
+        }
       } else if (doc.containsKey("_id") && doc.get("_id") != null) {
         id = doc.get("_id").toString();
       }
@@ -415,9 +421,15 @@ public final class CollectionManager implements Closeable {
             Filters.eq("_id", doc.get("_id")), doc, new ReplaceOptions().upsert(true));
         id = doc.get("_id").toString();
       } else {
-        InsertOneResult result = collection.insertOne(doc);
-        if (result.getInsertedId() != null && result.getInsertedId().isObjectId()) {
-          id = result.getInsertedId().asObjectId().getValue().toString();
+        final InsertOneResult result = collection.insertOne(doc);
+        if (result.getInsertedId() != null) {
+          final org.bson.BsonValue insertedId = result.getInsertedId();
+          if (insertedId != null && insertedId.isObjectId()) {
+            final org.bson.types.ObjectId objectId = insertedId.asObjectId().getValue();
+            if (objectId != null) {
+              id = objectId.toString();
+            }
+          }
         }
       }
 
