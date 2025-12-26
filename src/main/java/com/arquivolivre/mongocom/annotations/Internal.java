@@ -21,7 +21,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * Annotation to mark fields or types as internal.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Internal {}

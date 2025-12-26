@@ -13,70 +13,113 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.management;
 
-import com.arquivolivre.mongocom.annotations.GeneratedValue;
-import com.arquivolivre.mongocom.annotations.Id;
-import com.arquivolivre.mongocom.annotations.Index;
-import com.arquivolivre.mongocom.annotations.Internal;
-import com.arquivolivre.mongocom.annotations.Reference;
-import com.arquivolivre.mongocom.utils.Generator;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.InsertOneResult;
-import com.mongodb.client.result.UpdateResult;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.ReplaceOptions;
+import com.arquivolivre.mongocom.connection.MongoConnectionManager;
+import com.arquivolivre.mongocom.exception.MappingException;
+import com.arquivolivre.mongocom.indexes.IndexManager;
+import com.arquivolivre.mongocom.metadata.EntityMetadataExtractor;
+import com.arquivolivre.mongocom.repository.EntityRepository;
+import com.arquivolivre.mongocom.repository.RepositoryFactory;
+import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
-import org.bson.Document;
-import org.bson.types.ObjectId;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import java.io.Closeable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * Facade for MongoDB collection management and CRUD operations.
+ *
+ * <p>This class provides a simplified interface for interacting with MongoDB collections. It
+ * delegates to specialized components for different responsibilities:
+ *
+ * <ul>
+ *   <li>Connection management - {@link MongoConnectionManager}
+ *   <li>Metadata extraction - {@link EntityMetadataExtractor}
+ *   <li>Repository operations - {@link RepositoryFactory}
+ *   <li>Index management - {@link IndexManager}
+ * </ul>
+ *
+ * <p><b>Design Pattern:</b> Facade - provides unified interface to subsystems
+ *
+ * <p><b>Thread Safety:</b> This class is thread-safe. All delegated components are thread-safe.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ * @author MongOCOM Team
+ * @since 0.1
+ */
 public final class CollectionManager implements Closeable {
 
-  private final MongoClient client;
-  private MongoDatabase db;
   private static final Logger LOG = Logger.getLogger(CollectionManager.class.getName());
 
-  // TODO: a better way to manage db connection
-  protected CollectionManager(MongoClient client, String dataBase) {
+  // Phase 3: Connection Management
+  private final MongoConnectionManager connectionManager;
+
+  // Phase 6: Repository Pattern
+  private final RepositoryFactory repositoryFactory;
+
+  // Phase 7: Index Management
+  private final IndexManager indexManager;
+
+  // Legacy support - kept for backward compatibility
+  private final MongoClient client;
+  private MongoDatabase db;
+
+  /**
+   * Creates a new collection manager with specified database.
+   *
+   * @param client the MongoDB client (must not be null)
+   * @param dataBase the database name (if null or empty, uses "test")
+   */
+  protected CollectionManager(final MongoClient client, final String dataBase) {
     this.client = client;
-    if (dataBase != null && !dataBase.equals("")) {
-      this.db = client.getDatabase(dataBase);
-    } else {
-      // Get the first available database - need to handle differently in new driver
-      this.db = client.getDatabase("test"); // Default to 'test' database
+
+    // Initialize connection manager
+    final String dbName = (dataBase != null && !"".equals(dataBase)) ? dataBase : "test";
+    this.connectionManager = MongoConnectionManager.getInstance(client, dbName);
+
+    // Initialize repository factory
+    this.repositoryFactory = new RepositoryFactory(connectionManager);
+
+    // Initialize index manager
+    this.indexManager = new IndexManager(connectionManager);
+
+    // Keep legacy db reference for backward compatibility
+    this.db = connectionManager.getDatabase(dbName);
+
+    if (LOG.isLoggable(Level.FINE)) {
+      LOG.log(Level.FINE, "CollectionManager initialized for database: {0}", dbName);
     }
   }
 
-  protected CollectionManager(MongoClient client, String dbName, String user, String password) {
+  /**
+   * Creates a new collection manager with authentication.
+   *
+   * <p>Note: Authentication should be handled during MongoClient creation in newer drivers.
+   *
+   * @param client the MongoDB client (must not be null)
+   * @param dbName the database name
+   * @param user the username (deprecated - handle in client creation)
+   * @param password the password (deprecated - handle in client creation)
+   */
+  protected CollectionManager(
+      final MongoClient client, final String dbName, final String user, final String password) {
     this(client, dbName);
-    // Note: Authentication should be handled during MongoClient creation in newer drivers
-    // The authenticate method is deprecated and removed in newer driver versions
+    // Authentication is handled during MongoClient creation in newer drivers
   }
 
-  protected CollectionManager(MongoClient client) {
-    this.client = client;
+  /**
+   * Creates a new collection manager without specifying database.
+   *
+   * @param client the MongoDB client (must not be null)
+   */
+  protected CollectionManager(final MongoClient client) {
+    this(client, "test");
   }
 
   /**
@@ -84,184 +127,99 @@ public final class CollectionManager implements Closeable {
    *
    * @param dbName Database name
    */
-  public void use(String dbName) {
-    db = client.getDatabase(dbName);
+  public void use(final String dbName) {
+    db = connectionManager.getDatabase(dbName);
   }
 
   /**
    * The number of documents in the specified collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @return the total of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @return the total of documents
    */
-  public <A extends Object> long count(Class<A> collectionClass) {
-    return count(collectionClass, new MongoQuery());
+  public <A> long count(final Class<A> collectionClass) {
+    final EntityRepository<A, String> repository = repositoryFactory.getRepository(collectionClass);
+    return repository.count();
   }
 
   /**
    * The number of documents that match the specified query.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
-   * @return the total of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param query the query to filter documents
+   * @return the total of documents
    */
-  public <A extends Object> long count(Class<A> collectionClass, MongoQuery query) {
-    long ret = 0l;
-    try {
-      A result = collectionClass.newInstance();
-      String collectionName = reflectCollectionName(result);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      ret = collection.countDocuments(query.getQuery());
-    } catch (InstantiationException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException
-        | NoSuchMethodException
-        | SecurityException ex) {
-      LOG.log(Level.SEVERE, null, ex);
-    }
-    return ret;
+  public <A> long count(final Class<A> collectionClass, final MongoQuery query) {
+    final EntityRepository<A, String> repository = repositoryFactory.getRepository(collectionClass);
+    return repository.count(query);
   }
 
   /**
    * Find all documents in the specified collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @return a list of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @return a list of documents
    */
-  public <A extends Object> List<A> find(Class<A> collectionClass) {
-    return find(collectionClass, new MongoQuery());
+  public <A> List<A> find(final Class<A> collectionClass) {
+    final EntityRepository<A, String> repository = repositoryFactory.getRepository(collectionClass);
+    return repository.findAll();
   }
 
   /**
    * Find all documents that match the specified query in the given collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
-   * @return a list of documents.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param query the query to filter documents
+   * @return a list of documents
    */
-  public <A extends Object> List<A> find(Class<A> collectionClass, MongoQuery query) {
-    List<A> resultSet = new ArrayList<>();
-    try {
-      A obj = collectionClass.newInstance();
-      String collectionName = reflectCollectionName(obj);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      
-      FindIterable<Document> findIterable = collection.find(query.getQuery());
-      
-      // Apply projection if specified
-      if (query.getConstraints() != null) {
-        findIterable = findIterable.projection(query.getConstraints());
-      }
-      
-      // Apply ordering if specified  
-      if (query.getOrderBy() != null) {
-        findIterable = findIterable.sort(query.getOrderBy());
-      }
-      
-      // Apply skip and limit
-      if (query.getSkip() > 0) {
-        findIterable = findIterable.skip(query.getSkip());
-      }
-      if (query.getLimit() > 0) {
-        findIterable = findIterable.limit(query.getLimit());
-      }
-      
-      for (Document document : findIterable) {
-        loadObject(obj, document);
-        resultSet.add(obj);
-        obj = collectionClass.newInstance();
-      }
-    } catch (InstantiationException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException
-        | NoSuchMethodException
-        | SecurityException ex) {
-      LOG.log(Level.SEVERE, null, ex);
-    }
-    return resultSet;
+  public <A> List<A> find(final Class<A> collectionClass, final MongoQuery query) {
+    final EntityRepository<A, String> repository = repositoryFactory.getRepository(collectionClass);
+    return repository.find(query);
   }
 
   /**
    * Find a single document of the specified collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @return a document.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @return a document
    */
-  public <A extends Object> A findOne(Class<A> collectionClass) {
-    A result = null;
-    try {
-      result = collectionClass.newInstance();
-      String collectionName = reflectCollectionName(result);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      Document doc = collection.find().first();
-      if (doc == null) {
-        return null;
-      }
-      loadObject(result, doc);
-    } catch (NoSuchMethodException
-        | SecurityException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException
-        | InstantiationException ex) {
-      LOG.log(Level.SEVERE, null, ex);
-    }
-    return result;
+  public <A> A findOne(final Class<A> collectionClass) {
+    final EntityRepository<A, String> repository = repositoryFactory.getRepository(collectionClass);
+    final Optional<A> result = repository.findOne(new MongoQuery());
+    return result.orElse(null);
   }
 
   /**
    * Find a single document that matches the specified query in the given collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param query
-   * @return a document.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param query the query to filter documents
+   * @return a document
    */
-  public <A extends Object> A findOne(Class<A> collectionClass, MongoQuery query) {
-    A result = null;
-    try {
-      result = collectionClass.newInstance();
-      String collectionName = reflectCollectionName(result);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      
-      FindIterable<Document> findIterable = collection.find(query.getQuery());
-      if (query.getConstraints() != null) {
-        findIterable = findIterable.projection(query.getConstraints());
-      }
-      
-      Document doc = findIterable.first();
-      if (doc == null) {
-        return null;
-      }
-      loadObject(result, doc);
-    } catch (NoSuchMethodException
-        | SecurityException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException
-        | InstantiationException ex) {
-      LOG.log(Level.SEVERE, null, ex);
-    }
-    return result;
+  public <A> A findOne(final Class<A> collectionClass, final MongoQuery query) {
+    final EntityRepository<A, String> repository = repositoryFactory.getRepository(collectionClass);
+    final Optional<A> result = repository.findOne(query);
+    return result.orElse(null);
   }
 
   /**
    * Find a single document that matches the specified id in the given collection.
    *
-   * @param <A> generic type of the collection.
-   * @param collectionClass
-   * @param id
-   * @return a document.
+   * @param <A> generic type of the collection
+   * @param collectionClass the class representing the collection
+   * @param documentId the document ID
+   * @return a document
    */
-  public <A extends Object> A findById(Class<A> collectionClass, String id) {
-    return findOne(collectionClass, new MongoQuery("_id", id));
+  public <A> A findById(final Class<A> collectionClass, final String documentId) {
+    final EntityRepository<A, String> repository = repositoryFactory.getRepository(collectionClass);
+    final Optional<A> result = repository.findById(documentId);
+    return result.orElse(null);
   }
 
   /**
@@ -269,411 +227,139 @@ public final class CollectionManager implements Closeable {
    *
    * @param document to be removed.
    */
-  public void remove(Object document) {
-    try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      collection.deleteOne(doc);
-    } catch (InstantiationException
-        | NoSuchMethodException
-        | InvocationTargetException
-        | IllegalAccessException
-        | SecurityException
-        | IllegalArgumentException ex) {
-      LOG.log(Level.SEVERE, "An error occured while removing this document: {0}", ex.getMessage());
+  public void remove(final Object document) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    final EntityRepository repository = repositoryFactory.getRepository(document.getClass());
+    repository.delete(document);
+  }
+
+  /**
+   * Insert the document in a collection.
+   *
+   * @param document the document to insert
+   * @return the <code>_id</code> of the inserted document, <code>null</code> if fails
+   */
+  public String insert(final Object document) {
+    String result = null;
+    if (document != null) {
+      try {
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        final EntityRepository repository = repositoryFactory.getRepository(document.getClass());
+        final Object insertedIdObj = repository.insert(document);
+        final String insertedId = insertedIdObj != null ? insertedIdObj.toString() : null;
+        indexManager.ensureIndexes(document.getClass());
+        if (insertedId != null) {
+          LOG.log(Level.INFO, "Object \"{0}\" inserted successfully.", insertedId);
+        }
+        result = insertedId;
+      } catch (final MongoException ex) {
+        LOG.log(Level.SEVERE, "MongoDB error while inserting document: {0}", ex.getMessage());
+      } catch (final MappingException ex) {
+        LOG.log(Level.SEVERE, "Mapping error while inserting document: {0}", ex.getMessage());
+      } catch (final IllegalArgumentException ex) {
+        LOG.log(Level.SEVERE, "Invalid document for insertion: {0}", ex.getMessage());
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Update documents matching the query.
+   *
+   * @param query the query to match documents
+   * @param document the document with update values
+   */
+  public void update(final MongoQuery query, final Object document) {
+    update(query, document, false, false);
+  }
+
+  /**
+   * Update documents matching the query.
+   *
+   * @param query the query to match documents
+   * @param document the document with update values
+   * @param upsert whether to insert if not found
+   * @param multi whether to update multiple documents
+   */
+  public void update(
+      final MongoQuery query, final Object document, final boolean upsert, final boolean multi) {
+    update(query, document, upsert, multi, WriteConcern.ACKNOWLEDGED);
+  }
+
+  /**
+   * Update documents matching the query with write concern.
+   *
+   * @param query the query to match documents
+   * @param document the document with update values
+   * @param upsert whether to insert if not found
+   * @param multi whether to update multiple documents
+   * @param concern the write concern to use
+   */
+  public void update(
+      final MongoQuery query,
+      final Object document,
+      final boolean upsert,
+      final boolean multi,
+      final WriteConcern concern) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    final EntityRepository repository = repositoryFactory.getRepository(document.getClass());
+    if (multi) {
+      repository.updateMulti(query, document);
+    } else {
+      repository.update(query, document);
     }
   }
 
   /**
-   * Insert the document in a collection
+   * Update multiple documents matching the query.
    *
-   * @param document
-   * @return the <code>_id</code> of the inserted document, <code>null</code> if fails.
+   * @param query the query to match documents
+   * @param document the document with update values
    */
-  public String insert(Object document) {
-    String _id = null;
-    if (document == null) {
-      return _id;
-    }
-    try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      InsertOneResult result = collection.insertOne(doc);
-      if (result.getInsertedId() != null) {
-        _id = result.getInsertedId().asObjectId().getValue().toString();
-      } else if (doc.containsKey("_id")) {
-        _id = doc.get("_id").toString();
-      }
-      
-      Field field = getFieldByAnnotation(document, com.arquivolivre.mongocom.annotations.ObjectId.class, false);
-      if (field != null) {
-        field.setAccessible(true);
-        field.set(document, _id);
-      }
-      indexFields(document);
-    } catch (InstantiationException
-        | NoSuchMethodException
-        | InvocationTargetException
-        | IllegalAccessException
-        | SecurityException
-        | IllegalArgumentException
-        | NoSuchFieldException ex) {
-      LOG.log(Level.SEVERE, "An error occured while inserting this document: {0}", ex.getMessage());
-    }
-    if (_id != null) {
-      LOG.log(Level.INFO, "Object \"{0}\" inserted successfully.", _id);
-    }
-    return _id;
-  }
-
-  public void update(MongoQuery query, Object document) {
-    update(query, document, false, false);
-  }
-
-  public void update(MongoQuery query, Object document, boolean upsert, boolean multi) {
-    update(query, document, upsert, multi, WriteConcern.ACKNOWLEDGED);
-  }
-
-  public void update(
-      MongoQuery query, Object document, boolean upsert, boolean multi, WriteConcern concern) {
-    try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName).withWriteConcern(concern);
-      
-      if (multi) {
-        collection.updateMany(query.getQuery(), new Document("$set", doc));
-      } else {
-        collection.updateOne(query.getQuery(), new Document("$set", doc));
-      }
-    } catch (InstantiationException
-        | NoSuchMethodException
-        | InvocationTargetException
-        | IllegalAccessException
-        | SecurityException
-        | IllegalArgumentException ex) {
-      LOG.log(Level.SEVERE, null, ex);
-    }
-  }
-
-  public void updateMulti(MongoQuery query, Object document) {
+  public void updateMulti(final MongoQuery query, final Object document) {
     update(query, document, false, true);
   }
 
-  public String save(Object document) {
-    // TODO: a better way to throw/treat exceptions
-    /*if (!document.getClass().isAnnotationPresent(Document.class)) {
-    throw new NoSuchMongoCollectionException(document.getClass() + " is not a valid Document.");
-    }*/
-    String _id = null;
-    if (document == null) {
-      return _id;
-    }
-    try {
-      Document doc = loadDocument(document);
-      String collectionName = reflectCollectionName(document);
-      MongoCollection<Document> collection = db.getCollection(collectionName);
-      
-      // If document has _id, use replaceOne with upsert, otherwise insertOne
-      if (doc.containsKey("_id")) {
-        collection.replaceOne(Filters.eq("_id", doc.get("_id")), doc, 
-            new ReplaceOptions().upsert(true));
-        _id = doc.get("_id").toString();
-      } else {
-        InsertOneResult result = collection.insertOne(doc);
-        if (result.getInsertedId() != null) {
-          _id = result.getInsertedId().asObjectId().getValue().toString();
-        }
-      }
-      
-      indexFields(document);
-    } catch (InstantiationException
-        | IllegalAccessException
-        | IllegalArgumentException
-        | InvocationTargetException
-        | NoSuchMethodException
-        | SecurityException ex) {
-      LOG.log(Level.SEVERE, "An error occured while saving this document: {0}", ex.getMessage());
-    }
-    if (_id != null) {
-      LOG.log(Level.INFO, "Object \"{0}\" saved successfully.", _id);
-    }
-    return _id;
-  }
-
-  private void indexFields(Object document)
-      throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException,
-          InvocationTargetException {
-    String collectionName = reflectCollectionName(document);
-    Field[] fields = getFieldsByAnnotation(document, Index.class);
-    Map<String, List<String>> compoundIndexes = new TreeMap<>();
-    IndexOptions compoundIndexesOpt = new IndexOptions().background(true);
-    MongoCollection<Document> collection = db.getCollection(collectionName);
-    for (Field field : fields) {
-      Annotation annotation = field.getAnnotation(Index.class);
-      IndexOptions options = new IndexOptions();
-      Document indexKeys = new Document();
-      String indexName = (String) annotation.annotationType().getMethod("value").invoke(annotation);
-      String type = (String) annotation.annotationType().getMethod("type").invoke(annotation);
-      boolean unique = (boolean) annotation.annotationType().getMethod("unique").invoke(annotation);
-      boolean sparse = (boolean) annotation.annotationType().getMethod("sparse").invoke(annotation);
-      boolean dropDups =
-          (boolean) annotation.annotationType().getMethod("dropDups").invoke(annotation);
-      boolean background =
-          (boolean) annotation.annotationType().getMethod("background").invoke(annotation);
-      int order = (int) annotation.annotationType().getMethod("order").invoke(annotation);
-      if (!indexName.equals("")) {
-        options.name(indexName);
-      }
-      options.background(background);
-      options.unique(unique);
-      options.sparse(sparse);
-      // Note: dropDups is deprecated in newer MongoDB versions and not supported in driver 5.x
-      String fieldName = field.getName();
-      if (indexName.equals("") && type.equals("")) {
-        indexKeys.append(fieldName, order);
-        collection.createIndex(indexKeys, options);
-      } else if (!indexName.equals("") && type.equals("")) {
-        List<String> result = compoundIndexes.get(indexName);
-        if (result == null) {
-          result = new ArrayList<>();
-          compoundIndexes.put(indexName, result);
-        }
-        result.add(fieldName + "_" + order);
-      } else if (!type.equals("")) {
-        indexKeys.append(fieldName, type);
-        collection.createIndex(indexKeys, compoundIndexesOpt);
-      }
-    }
-    Set<String> keys = compoundIndexes.keySet();
-    for (String key : keys) {
-      Document keysObj = new Document();
-      IndexOptions namedOptions = new IndexOptions().background(true).name(key);
-      for (String value : compoundIndexes.get(key)) {
-        boolean with_ = false;
-        if (value.startsWith("_")) {
-          value = value.replaceFirst("_", "");
-          with_ = true;
-        }
-        String[] opt = value.split("_");
-        if (with_) {
-          opt[0] = "_" + opt[0];
-        }
-        keysObj.append(opt[0], Integer.parseInt(opt[1]));
-      }
-      collection.createIndex(keysObj, namedOptions);
-    }
-  }
-
-  private Document loadDocument(Object document)
-      throws SecurityException, InstantiationException, InvocationTargetException,
-          NoSuchMethodException {
-    Field[] fields = document.getClass().getDeclaredFields();
-    Document doc = new Document();
-    for (Field field : fields) {
+  /**
+   * Save a document (insert or update).
+   *
+   * @param document the document to save
+   * @return the document ID
+   */
+  public String save(final Object document) {
+    String result = null;
+    if (document != null) {
       try {
-        field.setAccessible(true);
-        String fieldName = field.getName();
-        Object fieldContent = field.get(document);
-        if (fieldContent == null && !field.isAnnotationPresent(GeneratedValue.class)) {
-          continue;
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        final EntityRepository repository = repositoryFactory.getRepository(document.getClass());
+        final String savedId = (String) repository.save(document);
+        indexManager.ensureIndexes(document.getClass());
+        if (savedId != null) {
+          LOG.log(Level.INFO, "Object \"{0}\" saved successfully.", savedId);
         }
-        if (fieldContent instanceof List) {
-          List<Object> list = new ArrayList<>();
-          boolean isInternal = field.isAnnotationPresent(Internal.class);
-          for (Object item : (List) fieldContent) {
-            if (isInternal) {
-              list.add(loadDocument(item));
-            } else {
-              list.add(item);
-            }
-          }
-          doc.append(fieldName, list);
-        } else if (field.getType().isEnum()) {
-          doc.append(fieldName, fieldContent.toString());
-        } else if (field.isAnnotationPresent(Reference.class)) {
-          doc.append(fieldName, new ObjectId(save(fieldContent)));
-        } else if (field.isAnnotationPresent(Internal.class)) {
-          doc.append(fieldName, loadDocument(fieldContent));
-        } else if (field.isAnnotationPresent(Id.class) && !fieldContent.equals("")) {
-          doc.append(fieldName, reflectId(field));
-        } else if (field.isAnnotationPresent(GeneratedValue.class)) {
-          Object value = reflectGeneratedValue(field, fieldContent);
-          if (value != null) {
-            doc.append(fieldName, value);
-          }
-        } else if (!field.isAnnotationPresent(com.arquivolivre.mongocom.annotations.ObjectId.class)) {
-          doc.append(fieldName, fieldContent);
-        } else if (!fieldContent.equals("")) {
-          doc.append("_id", new ObjectId((String) fieldContent));
-        }
-      } catch (IllegalArgumentException | IllegalAccessException ex) {
-        LOG.log(Level.SEVERE, null, ex);
+        result = savedId;
+      } catch (final MongoException ex) {
+        LOG.log(Level.SEVERE, "MongoDB error while saving document: {0}", ex.getMessage());
+      } catch (final MappingException ex) {
+        LOG.log(Level.SEVERE, "Mapping error while saving document: {0}", ex.getMessage());
+      } catch (final IllegalArgumentException ex) {
+        LOG.log(Level.SEVERE, "Invalid document for save: {0}", ex.getMessage());
       }
     }
-    return doc;
+    return result;
   }
 
-  private <A extends Object> void loadObject(A object, Document document)
-      throws IllegalAccessException, IllegalArgumentException, SecurityException,
-          InstantiationException {
-    Field[] fields = object.getClass().getDeclaredFields();
-    for (Field field : fields) {
-      field.setAccessible(true);
-      String fieldName = field.getName();
-      Object fieldContent = document.get(fieldName);
-      if (fieldContent instanceof List) {
-        Class<?> fieldArgClass = null;
-        ParameterizedType genericFieldType = (ParameterizedType) field.getGenericType();
-        Type[] fieldArgTypes = genericFieldType.getActualTypeArguments();
-        for (Type fieldArgType : fieldArgTypes) {
-          fieldArgClass = (Class<?>) fieldArgType;
-        }
-        List<Object> list = new ArrayList<>();
-        boolean isInternal = field.isAnnotationPresent(Internal.class);
-        for (Object item : (List) fieldContent) {
-          if (isInternal) {
-            Object o = fieldArgClass.newInstance();
-            loadObject(o, (Document) item);
-            list.add(o);
-          } else {
-            list.add(item);
-          }
-        }
-        field.set(object, list);
-      } else if ((fieldContent != null) && field.getType().isEnum()) {
-        field.set(object, Enum.valueOf((Class) field.getType(), (String) fieldContent));
-      } else if ((fieldContent != null) && field.isAnnotationPresent(Reference.class)) {
-        field.set(
-            object, findById(field.getType(), ((ObjectId) fieldContent).toString()));
-      } else if (field.isAnnotationPresent(com.arquivolivre.mongocom.annotations.ObjectId.class)) {
-        field.set(object, ((ObjectId) document.get("_id")).toString());
-      } else if (field.getType().isPrimitive() && (fieldContent == null)) {
-      } else if (fieldContent != null) {
-        field.set(object, fieldContent);
-      }
-    }
-  }
-
-  private Field getFieldByAnnotation(
-      Object obj, Class<? extends Annotation> annotationClass, boolean annotationRequired)
-      throws NoSuchFieldException {
-    Field[] fields = getFieldsByAnnotation(obj, annotationClass);
-    if ((fields.length == 0) && annotationRequired) {
-      throw new NoSuchFieldException("@" + annotationClass.getSimpleName() + " field not found.");
-    } else if (fields.length > 0) {
-      if (fields.length > 1) {
-        LOG.log(
-            Level.WARNING,
-            "There are more than one @{0} field. Assuming the first one.",
-            annotationClass.getSimpleName());
-      }
-      return fields[0];
-    }
-    return null;
-  }
-
-  private Field[] getFieldsByAnnotation(Object obj, Class<? extends Annotation> annotationClass) {
-    Field[] fields = obj.getClass().getDeclaredFields();
-    List<Field> fieldsAnnotated = new ArrayList<>();
-    for (Field field : fields) {
-      if (field.isAnnotationPresent(annotationClass)) {
-        fieldsAnnotated.add(field);
-      }
-    }
-    fields = new Field[fieldsAnnotated.size()];
-    return fieldsAnnotated.toArray(fields);
-  }
-
-  private void invokeAnnotatedMethods(Object obj, Class<? extends Annotation> annotationClass) {
-    Method[] methods = getMethodsByAnnotation(obj, annotationClass);
-    for (Method method : methods) {
-      try {
-        method.invoke(obj);
-      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-        LOG.log(Level.SEVERE, null, ex);
-      }
-    }
-  }
-
-  private Method[] getMethodsByAnnotation(Object obj, Class<? extends Annotation> annotationClass) {
-    Method[] methods = obj.getClass().getDeclaredMethods();
-    List<Method> methodsAnnotated = new ArrayList<>();
-    for (Method method : methods) {
-      if (method.isAnnotationPresent(annotationClass)) {
-        methodsAnnotated.add(method);
-      }
-    }
-    return (Method[]) methodsAnnotated.toArray();
-  }
-
-  private String reflectCollectionName(Object document)
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException,
-          SecurityException, IllegalArgumentException {
-    Annotation annotation = document.getClass().getAnnotation(com.arquivolivre.mongocom.annotations.Document.class);
-    String coll = (String) annotation.annotationType().getMethod("collection").invoke(annotation);
-    if (coll.equals("")) {
-      coll = document.getClass().getSimpleName();
-    }
-    return coll;
-  }
-
-  private <A extends Object> A reflectId(Field field)
-      throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException,
-          InvocationTargetException, InstantiationException {
-    Annotation annotation = field.getAnnotation(Id.class);
-    Boolean autoIncrement =
-        (Boolean) annotation.annotationType().getMethod("autoIncrement").invoke(annotation);
-    Class generator = (Class) annotation.annotationType().getMethod("generator").invoke(annotation);
-    if (autoIncrement) {
-      Generator g = (Generator) generator.newInstance();
-      return g.generateValue(field.getDeclaringClass(), db);
-    }
-    return null;
-  }
-
-  private <A extends Object> A reflectGeneratedValue(Field field, Object oldValue)
-      throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException,
-          InvocationTargetException, InstantiationException {
-    Annotation annotation = field.getAnnotation(GeneratedValue.class);
-    Class<? extends Annotation> annotationType = annotation.annotationType();
-    Boolean update = (Boolean) annotationType.getMethod("update").invoke(annotation);
-    Class generator = (Class) annotationType.getMethod("generator").invoke(annotation);
-    Generator g = (Generator) generator.newInstance();
-    if ((update && (oldValue != null)) || (oldValue == null)) {
-      return g.generateValue(field.getDeclaringClass(), db);
-    } else if (oldValue instanceof Number) {
-
-      boolean test = oldValue.equals(oldValue.getClass().cast(0));
-      if (test) {
-        return g.generateValue(field.getDeclaringClass(), db);
-      } else if (update) {
-        return g.generateValue(field.getDeclaringClass(), db);
-      }
-    }
-    return null;
-  }
-
+  /**
+   * Get the database connection status.
+   *
+   * @return status message
+   */
   public String getStatus() {
-    try {
-      // Run a ping command to check connectivity
-      Document ping = new Document("ping", 1);
-      Document result = db.runCommand(ping);
-      // Get database names as additional info
-      List<String> dbNames = new ArrayList<>();
-      for (String name : client.listDatabaseNames()) {
-        dbNames.add(name);
-      }
-      return "MongoDB client connected. Ping result: " + result.toJson() + ". Databases: " + dbNames;
-    } catch (Exception e) {
-      return "MongoDB client connection error: " + e.getMessage();
-    }
+    return connectionManager.getStatus();
   }
 
   @Override
   public void close() {
-    client.close();
+    connectionManager.close();
   }
 }

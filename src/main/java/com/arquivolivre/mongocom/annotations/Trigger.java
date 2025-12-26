@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.annotations;
 
 import com.arquivolivre.mongocom.types.Action;
@@ -22,12 +23,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * Annotation to mark a method as a database trigger.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Trigger {
 
+  /** The action that triggers this method. */
   Action value();
 
+  /** When the trigger should execute (before or after the action). */
   TriggerType when() default TriggerType.BEFORE;
 }
