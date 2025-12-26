@@ -25,5 +25,5 @@ import com.mongodb.client.MongoDatabase;
  */
 public interface Generator {
 
-  <A extends Object> A generateValue(Class parent, MongoDatabase db);
+  <A extends Object> A generateValue(Class parent, MongoDatabase database);
 }

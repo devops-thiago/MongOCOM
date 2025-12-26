@@ -54,14 +54,14 @@ public final class MongoQuery {
    */
   public MongoQuery add(String field, Object value) {
     if (value instanceof MongoQuery) {
-      MongoQuery q = (MongoQuery) value;
+      final MongoQuery q = (MongoQuery) value;
       query.append(field, q.getQuery());
     } else if (value instanceof List) {
-      ArrayList<Object> lists = new ArrayList<>();
-      for (Object item : (List) value) {
+      final List<Object> lists = new ArrayList<>();
+      for (final Object item : (List) value) {
         if (item instanceof MongoQuery) {
-          MongoQuery q = (MongoQuery) item;
-          lists.add(q.getQuery());
+          final MongoQuery mongoQuery = (MongoQuery) item;
+          lists.add(mongoQuery.getQuery());
           continue;
         }
         lists.add(item);
@@ -83,7 +83,7 @@ public final class MongoQuery {
    */
   public void returnOnly(boolean returnId, String... fields) {
     constraints = new Document();
-    for (String field : fields) {
+    for (final String field : fields) {
       constraints.append(field, 1);
     }
     if (!returnId) {
@@ -98,7 +98,7 @@ public final class MongoQuery {
    */
   public void removeFieldsFromResult(String... fields) {
     constraints = new Document();
-    for (String field : fields) {
+    for (final String field : fields) {
       constraints.append(field, 0);
     }
   }

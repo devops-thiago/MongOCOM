@@ -43,13 +43,13 @@ public class QueryPrototype {
 
   public static void and(final String field) {}
 
-  public static void or(final String field) {}
+  public static void orCondition(final String field) {}
 
   public static void exists() {}
 
   public static void notExists() {}
 
-  public static void in(final Object... values) {}
+  public static void isIn(final Object... values) {}
 
   public static void notIn(final Object... values) {}
 }

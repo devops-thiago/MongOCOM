@@ -44,6 +44,9 @@ public final class CollectionManagerFactory {
   private static final String[] FILES = {"application", "database"};
   private static final String[] EXTENTIONS = {".conf", ".config", ".properties"};
 
+  /** Empty string constant for host validation. */
+  private static final String EMPTY_STRING = "";
+
   /**
    * Create a <code>CollectionManager</code>.
    *
@@ -82,6 +85,8 @@ public final class CollectionManagerFactory {
    * @return an instance of a <code>CollectionManager</code>.
    */
   public static CollectionManager createCollectionManagerFromUri(final String uri) {
+    CollectionManager result = null;
+
     try {
       final ConnectionString connectionString = new ConnectionString(uri);
       final MongoClientSettings settings =
@@ -89,11 +94,14 @@ public final class CollectionManagerFactory {
       client = MongoClients.create(settings);
       final String dbName = connectionString.getDatabase();
       LOG.log(Level.INFO, "Connected to MongoDB using URI: {0}", uri);
-      return new CollectionManager(client, dbName);
+      result = new CollectionManager(client, dbName);
     } catch (MongoException ex) {
       LOG.log(Level.SEVERE, "Unable to connect to MongoDB using URI: " + uri + ", error: ", ex);
+    } catch (IllegalArgumentException | NullPointerException ex) {
+      LOG.log(Level.SEVERE, "Invalid MongoDB URI: " + uri + ", error: ", ex);
     }
-    return null;
+
+    return result;
   }
 
   private static CollectionManager createBaseCollectionManager(
@@ -102,6 +110,8 @@ public final class CollectionManagerFactory {
       final String dbName,
       final String user,
       final String password) {
+    CollectionManager result = null;
+
     try {
       final StringBuilder uriBuilder = new StringBuilder();
       uriBuilder.append("mongodb://");
@@ -112,7 +122,7 @@ public final class CollectionManagerFactory {
       }
 
       // Add host
-      if ("".equals(host)) {
+      if (EMPTY_STRING.equals(host)) {
         uriBuilder.append("localhost");
       } else {
         uriBuilder.append(host);
@@ -136,15 +146,18 @@ public final class CollectionManagerFactory {
           MongoClientSettings.builder().applyConnectionString(connectionString).build();
       client = MongoClients.create(settings);
 
-      return new CollectionManager(client, dbName);
+      result = new CollectionManager(client, dbName);
     } catch (MongoException ex) {
       LOG.log(
           Level.SEVERE,
           "Unable to connect to a mongoDB instance, "
               + "maybe it is not running or you do not have the right permission: ",
           ex);
+    } catch (IllegalArgumentException | NullPointerException ex) {
+      LOG.log(Level.SEVERE, "Invalid MongoDB connection parameters: ", ex);
     }
-    return null;
+
+    return result;
   }
 
   /**
@@ -167,14 +180,16 @@ public final class CollectionManagerFactory {
    * @return an instance of a <code>CollectionManager</code>.
    */
   public static CollectionManager setup(final ServletContext context) {
+    CollectionManager result = null;
+
     try {
       final File props = getPropertiesFile(context);
       if (props == null) {
         throw new FileNotFoundException("application or database configuration file not found.");
       }
       final Properties properties = new Properties();
-      try (InputStream in = new FileInputStream(props)) {
-        properties.load(in);
+      try (InputStream inputStream = new FileInputStream(props)) {
+        properties.load(inputStream);
       }
 
       // Check if URI is provided directly
@@ -186,59 +201,59 @@ public final class CollectionManagerFactory {
             MongoClientSettings.builder().applyConnectionString(connectionString).build();
         client = MongoClients.create(settings);
         final String dbName = connectionString.getDatabase();
-        return new CollectionManager(client, dbName);
-      }
-
-      // Fall back to individual properties approach for backward compatibility
-      final StringBuilder builder = new StringBuilder();
-      builder.append("mongodb://");
-      final String user =
-          properties.containsKey("mongocom.user") ? properties.getProperty("mongocom.user") : "";
-      final String password =
-          properties.containsKey("mongocom.password")
-              ? properties.getProperty("mongocom.password")
-              : "";
-      final String host =
-          properties.containsKey("mongocom.host") ? properties.getProperty("mongocom.host") : "";
-      final String port =
-          properties.containsKey("mongocom.port") ? properties.getProperty("mongocom.port") : "";
-      final String dbName =
-          properties.containsKey("mongocom.database")
-              ? properties.getProperty("mongocom.database")
-              : "";
-      if (!"".equals(user)) {
-        builder.append(user).append(':').append(password).append('@');
-      }
-      if ("".equals(host)) {
-        builder.append("localhost");
+        result = new CollectionManager(client, dbName);
       } else {
-        builder.append(host);
+        // Fall back to individual properties approach for backward compatibility
+        final StringBuilder builder = new StringBuilder();
+        builder.append("mongodb://");
+        final String user =
+            properties.containsKey("mongocom.user") ? properties.getProperty("mongocom.user") : "";
+        final String password =
+            properties.containsKey("mongocom.password")
+                ? properties.getProperty("mongocom.password")
+                : "";
+        final String host =
+            properties.containsKey("mongocom.host") ? properties.getProperty("mongocom.host") : "";
+        final String port =
+            properties.containsKey("mongocom.port") ? properties.getProperty("mongocom.port") : "";
+        final String dbName =
+            properties.containsKey("mongocom.database")
+                ? properties.getProperty("mongocom.database")
+                : "";
+        if (!EMPTY_STRING.equals(user)) {
+          builder.append(user).append(':').append(password).append('@');
+        }
+        if (EMPTY_STRING.equals(host)) {
+          builder.append("localhost");
+        } else {
+          builder.append(host);
+        }
+        if (!EMPTY_STRING.equals(port)) {
+          builder.append(':').append(port);
+        }
+        builder.append('/');
+        if (!"".equals(dbName)) {
+          builder.append(dbName);
+        }
+        LOG.log(
+            Level.INFO,
+            "Constructed MongoDB URI from individual properties: {0}",
+            builder.toString());
+        final ConnectionString connectionString = new ConnectionString(builder.toString());
+        final MongoClientSettings settings =
+            MongoClientSettings.builder().applyConnectionString(connectionString).build();
+        client = MongoClients.create(settings);
+        result = new CollectionManager(client, dbName);
       }
-      if (!"".equals(port)) {
-        builder.append(':');
-        builder.append(port);
-      }
-      builder.append('/');
-      if (!"".equals(dbName)) {
-        builder.append(dbName);
-      }
-      LOG.log(
-          Level.INFO,
-          "Constructed MongoDB URI from individual properties: {0}",
-          builder.toString());
-      final ConnectionString connectionString = new ConnectionString(builder.toString());
-      final MongoClientSettings settings =
-          MongoClientSettings.builder().applyConnectionString(connectionString).build();
-      client = MongoClients.create(settings);
-      return new CollectionManager(client, dbName);
     } catch (IOException ex) {
       LOG.log(Level.SEVERE, null, ex);
     }
-    return null;
+
+    return result;
   }
 
   private static File getPropertiesFile(final ServletContext context) throws FileNotFoundException {
-    String contextPath;
+    final String contextPath;
     if (context != null) {
       contextPath = context.getRealPath("WEB-INF");
     } else {
@@ -247,6 +262,7 @@ public final class CollectionManagerFactory {
     final File dir = new File(contextPath + "/conf");
     LOG.log(Level.INFO, dir.getAbsolutePath());
     File result = null;
+
     if (!dir.isDirectory()) {
       throw new FileNotFoundException("The \"conf/\" folder doesn't exist.");
     }
@@ -256,27 +272,30 @@ public final class CollectionManagerFactory {
           @Override
           public boolean accept(final File pathname) {
             final String fileName = pathname.getName();
+            boolean accepted = false;
             for (final String extention : EXTENTIONS) {
               if (fileName.endsWith(extention)) {
-                return true;
+                accepted = true;
+                break;
               }
             }
-            return false;
+            return accepted;
           }
         };
 
     final File[] files = dir.listFiles(filter);
-    if (files == null) {
-      return result;
-    }
-    for (final File file : files) {
-      final String fileName = file.getName();
-      if (fileName.startsWith(FILES[1])) {
-        return file;
-      } else if (fileName.startsWith(FILES[0])) {
-        result = file;
+    if (files != null) {
+      for (final File file : files) {
+        final String fileName = file.getName();
+        if (fileName.startsWith(FILES[1])) {
+          result = file;
+          break;
+        } else if (fileName.startsWith(FILES[0])) {
+          result = file;
+        }
       }
     }
+
     return result;
   }
 }
