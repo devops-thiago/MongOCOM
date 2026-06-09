@@ -15,11 +15,13 @@
  */
 package com.arquivolivre.mongocom.utils;
 
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>
+ */
 public class IntegerGenerator implements Generator {
 
   @Override

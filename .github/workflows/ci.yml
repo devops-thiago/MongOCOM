@@ -3,8 +3,6 @@ name: CI
 on:
   push:
     branches: [ master, main ]
-  pull_request:
-    branches: [ master, main ]
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -24,7 +22,7 @@ jobs:
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     
     - name: Cache Maven packages
@@ -41,8 +39,8 @@ jobs:
         key: ${{ runner.os }}-sonar
         restore-keys: ${{ runner.os }}-sonar
     
-    - name: Run tests and generate coverage
-      run: mvn clean verify
+    - name: Run tests with coverage
+      run: mvn clean test jacoco:report
     
     - name: Run SonarCloud analysis
       if: env.SONAR_TOKEN != ''
@@ -84,7 +82,7 @@ jobs:
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     
     - name: Cache Maven packages
@@ -95,7 +93,7 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     
     - name: Build package
-      run: mvn clean package -DskipTests
+      run: mvn package -DskipTests
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
