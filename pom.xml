@@ -63,7 +63,7 @@
                 <configuration>
                     <java>
                         <googleJavaFormat>
-                            <version>1.7</version>
+                            <version>1.24.0</version>
                             <style>GOOGLE</style>
                         </googleJavaFormat>
                         <removeUnusedImports />
@@ -71,6 +71,14 @@
                         <endWithNewline />
                     </java>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
             </plugin>
             
             <!-- SpotBugs for static analysis -->
@@ -81,7 +89,7 @@
                 <configuration>
                     <effort>Max</effort>
                     <threshold>Low</threshold>
-                    <failOnError>false</failOnError>
+                    <failOnError>true</failOnError>
                 </configuration>
                 <executions>
                     <execution>
@@ -106,7 +114,7 @@
                         <ruleset>/category/java/errorprone.xml</ruleset>
                         <ruleset>/category/java/performance.xml</ruleset>
                     </rulesets>
-                    <failOnViolation>false</failOnViolation>
+                    <failOnViolation>true</failOnViolation>
                 </configuration>
                 <executions>
                     <execution>
@@ -126,10 +134,10 @@
                     <configLocation>google_checks.xml</configLocation>
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
-                    <failsOnError>false</failsOnError>
-                    <failOnViolation>false</failOnViolation>
+                    <failsOnError>true</failsOnError>
+                    <failOnViolation>true</failOnViolation>
                     <linkXRef>false</linkXRef>
-                    <violationSeverity>error</violationSeverity>
+                    <violationSeverity>warning</violationSeverity>
                 </configuration>
                 <executions>
                     <execution>

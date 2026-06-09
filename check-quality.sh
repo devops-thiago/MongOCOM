@@ -19,19 +19,37 @@ echo "2️⃣ Checking code formatting..."
 mvn spotless:check
 if [ $? -ne 0 ]; then
     echo "❌ Code formatting issues found. Run 'mvn spotless:apply' to fix them."
-    echo "⚠️  Continuing with other checks..."
-else
-    echo "✅ Code formatting is correct!"
+    exit 1
 fi
+echo "✅ Code formatting is correct!"
 echo
 
 echo "3️⃣ Running static analysis..."
-mvn checkstyle:check pmd:check spotbugs:check
+echo "   - Running Checkstyle..."
+mvn checkstyle:check
 if [ $? -ne 0 ]; then
-    echo "⚠️  Static analysis found some issues (warnings only)"
-else
-    echo "✅ Static analysis passed!"
+    echo "❌ Checkstyle found violations!"
+    exit 1
 fi
+echo "   ✅ Checkstyle passed!"
+
+echo "   - Running PMD..."
+mvn pmd:check
+if [ $? -ne 0 ]; then
+    echo "❌ PMD found violations!"
+    exit 1
+fi
+echo "   ✅ PMD passed!"
+
+echo "   - Running SpotBugs..."
+mvn spotbugs:check
+if [ $? -ne 0 ]; then
+    echo "❌ SpotBugs found violations!"
+    exit 1
+fi
+echo "   ✅ SpotBugs passed!"
+
+echo "✅ All static analysis checks passed!"
 echo
 
 echo "4️⃣ Building package..."

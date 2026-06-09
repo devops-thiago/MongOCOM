@@ -13,38 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.utils;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * Prototype class for query building (currently not implemented).
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 public class QueryPrototype {
 
-  public static void select(String... fields) {}
+  public static void select(final String... fields) {}
 
-  public static void from(Class<?> collection) {}
+  public static void from(final Class<?> collection) {}
 
-  public static void where(String field) {}
+  public static void where(final String field) {}
 
-  public static void equalsTo(Object value) {}
+  public static void equalsTo(final Object value) {}
 
-  public static void notEqualsTo(Object value) {}
+  public static void notEqualsTo(final Object value) {}
 
-  public static void greaterThan(Object value) {}
+  public static void greaterThan(final Object value) {}
 
-  public static void lessThan(Object value) {}
+  public static void lessThan(final Object value) {}
 
-  public static void greaterThanOrEqualTo(Object value) {}
+  public static void greaterThanOrEqualTo(final Object value) {}
 
-  public static void lessThanOrEqualTo(Object value) {}
+  public static void lessThanOrEqualTo(final Object value) {}
 
-  public static void and(String field) {}
+  public static void and(final String field) {}
 
-  public static void or(String field) {}
+  public static void orCondition(final String field) {}
 
   public static void exists() {}
 
   public static void notExists() {}
 
-  public static void in(Object... values) {}
+  public static void isIn(final Object... values) {}
 
-  public static void notIn(Object... values) {}
+  public static void notIn(final Object... values) {}
 }

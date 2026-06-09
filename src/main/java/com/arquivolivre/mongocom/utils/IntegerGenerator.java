@@ -13,30 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.utils;
 
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br> */
+/**
+ * Generator implementation that creates auto-incremented Integer values.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 public class IntegerGenerator implements Generator {
 
   @Override
-  public Integer generateValue(Class parent, MongoDatabase db) {
-    MongoCollection<Document> collection = db.getCollection("values_" + parent.getSimpleName());
-    Document o = collection.find().first();
+  public Integer generateValue(final Class parent, final MongoDatabase database) {
+    final MongoCollection<Document> collection =
+        database.getCollection("values_" + parent.getSimpleName());
+    Document document = collection.find().first();
     int value = 0;
-    if (o != null) {
-      value = o.getInteger("generatedValue", 0);
+    if (document != null) {
+      value = document.getInteger("generatedValue", 0);
     } else {
-      o = new Document("generatedValue", value);
+      document = new Document("generatedValue", value);
     }
-    o.put("generatedValue", ++value);
-    if (o.getObjectId("_id") != null) {
-      collection.replaceOne(new Document("_id", o.getObjectId("_id")), o);
+    document.put("generatedValue", ++value);
+    if (document.getObjectId("_id") != null) {
+      collection.replaceOne(new Document("_id", document.getObjectId("_id")), document);
     } else {
-      collection.insertOne(o);
+      collection.insertOne(document);
     }
     return value;
   }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.arquivolivre.mongocom.annotations;
 
 import com.arquivolivre.mongocom.types.IndexType;
@@ -21,22 +22,33 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** @author Thiago da Silva Gonzaga <thiagosg@sjrp.unesp.br>. */
+/**
+ * Annotation to mark a field for indexing in MongoDB.
+ *
+ * @author Thiago da Silva Gonzaga {@literal <thiagosg@sjrp.unesp.br>}
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Index {
 
+  /** Index name or compound index specification. */
   String value() default "";
 
+  /** Whether this index should enforce uniqueness. */
   boolean unique() default false;
 
+  /** Whether this index should be sparse. */
   boolean sparse() default false;
 
+  /** Whether to drop duplicates when creating unique index. */
   boolean dropDups() default false;
 
+  /** Whether to create index in background. */
   boolean background() default true;
 
+  /** Sort order for the index. */
   int order() default IndexType.INDEX_ASCENDING;
 
+  /** Index type (e.g., "text", "hashed"). */
   String type() default "";
 }
