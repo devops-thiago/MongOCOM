@@ -32,3 +32,24 @@ updates:
     allow:
       - dependency-type: "direct"
       - dependency-type: "indirect"
+
+  # Keep SHA-pinned GitHub Actions up to date. Dependabot rewrites the pinned
+  # SHA and the trailing "# vX.Y.Z" comment together, so pins never go stale.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "devops-thiago"
+    assignees:
+      - "devops-thiago"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
